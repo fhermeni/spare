@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="4" passed="4">
+  <reporter-output>
+  </reporter-output>
+  <suite name="btrplace.model.constraint.AmongTest" duration-ms="44" started-at="2013-03-04T14:06:08Z" finished-at="2013-03-04T14:06:08Z">
+    <groups>
+    </groups>
+    <test name="Command line test" duration-ms="44" started-at="2013-03-04T14:06:08Z" finished-at="2013-03-04T14:06:08Z">
+      <class name="btrplace.model.constraint.AmongTest">
+        <test-method status="PASS" signature="testInstantiation()[pri:0, instance:btrplace.model.constraint.AmongTest@3e1876d4]" name="testInstantiation" duration-ms="14" started-at="2013-03-04T15:06:08Z" finished-at="2013-03-04T15:06:08Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testInstantiation -->
+        <test-method status="PASS" signature="testContinuousIsSatisfied()[pri:0, instance:btrplace.model.constraint.AmongTest@3e1876d4]" name="testContinuousIsSatisfied" duration-ms="12" started-at="2013-03-04T15:06:08Z" depends-on-methods="btrplace.model.constraint.AmongTest.testInstantiation" finished-at="2013-03-04T15:06:08Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testContinuousIsSatisfied -->
+        <test-method status="PASS" signature="testDiscreteIsSatisfied()[pri:0, instance:btrplace.model.constraint.AmongTest@3e1876d4]" name="testDiscreteIsSatisfied" duration-ms="1" started-at="2013-03-04T15:06:08Z" depends-on-methods="btrplace.model.constraint.AmongTest.testInstantiation" finished-at="2013-03-04T15:06:08Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testDiscreteIsSatisfied -->
+        <test-method status="PASS" signature="testEqualsHashCode()[pri:0, instance:btrplace.model.constraint.AmongTest@3e1876d4]" name="testEqualsHashCode" duration-ms="1" started-at="2013-03-04T15:06:08Z" depends-on-methods="btrplace.model.constraint.AmongTest.testInstantiation" finished-at="2013-03-04T15:06:08Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testEqualsHashCode -->
+      </class> <!-- btrplace.model.constraint.AmongTest -->
+    </test> <!-- Command line test -->
+  </suite> <!-- btrplace.model.constraint.AmongTest -->
+</testng-results>

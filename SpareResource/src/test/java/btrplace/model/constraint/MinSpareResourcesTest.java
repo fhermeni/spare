@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2012 University of Nice Sophia-Antipolis
+ *
+ * This file is part of btrplace.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package btrplace.model.constraint;
 
 import java.util.Arrays;
@@ -14,6 +32,12 @@ import btrplace.model.Mapping;
 import btrplace.model.Model;
 import btrplace.model.SatConstraint.Sat;
 import btrplace.model.view.ShareableResource;
+
+/**
+ * Unit tests for {@link MinSpareResources}.
+ * 
+ * @author Tu Huynh Dang
+ */
 
 public class MinSpareResourcesTest extends ConstraintTestMaterial {
 
@@ -43,7 +67,7 @@ public class MinSpareResourcesTest extends ConstraintTestMaterial {
 		c = new MinSpareResources(s, "ucpu", 3, true);
 		Assert.assertTrue(c.isContinuous());
 
-		System.out.println(c);
+		// System.out.println(c);
 	}
 
 	@Test
@@ -72,39 +96,6 @@ public class MinSpareResourcesTest extends ConstraintTestMaterial {
 
 		Assert.assertEquals(msr.isSatisfied(mo), Sat.SATISFIED);
 		rc.set(vm1, 3);
-		Assert.assertEquals(msr.isSatisfied(mo), Sat.UNSATISFIED);
-
-		map.addSleepingVM(vm2, n1);
-		map.addSleepingVM(vm3, n1);
-
-		Assert.assertEquals(msr.isSatisfied(mo), Sat.SATISFIED);
-
-	}
-
-	@Test
-	public void testNodeDiscreteIsSatisfied() {
-		Mapping map = new DefaultMapping();
-		map.addOnlineNode(n1);
-		map.addOnlineNode(n2);
-		map.addOnlineNode(n3);
-
-		map.addRunningVM(vm1, n1);
-		map.addRunningVM(vm2, n1);
-		map.addRunningVM(vm3, n2);
-		map.addRunningVM(vm4, n3);
-
-		Model mo = new DefaultModel(map);
-		ShareableResource rc = new ShareableResource("mem", 1);
-
-		rc.set(vm2, 2);
-		rc.set(n1, 4);
-		rc.set(n2, 2);
-		rc.set(n3, 2);
-		mo.attach(rc);
-		Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3));
-
-		MinSpareResources msr = new MinSpareResources(nodes, "node", 1);
-
 		Assert.assertEquals(msr.isSatisfied(mo), Sat.UNSATISFIED);
 
 		map.addSleepingVM(vm2, n1);

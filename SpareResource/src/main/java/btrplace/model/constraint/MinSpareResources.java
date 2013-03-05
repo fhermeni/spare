@@ -1,7 +1,5 @@
 package btrplace.model.constraint;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
@@ -42,23 +40,51 @@ public class MinSpareResources extends SatConstraint {
 	/**
 	 * Make a new constraint with a discrete restriction.
 	 * 
-	 * @param nodes
+	 * @param servers
 	 *            the group of nodes
 	 * @param rc
-	 *            the resource identifier ('ucpu','mem','node')
+	 *            the resource identifier
 	 * @param n
 	 *            the number of resources to be reserved
 	 */
-	public MinSpareResources(Set<UUID> nds, String rc, int n) {
-		this(nds, rc, n, false);
+	public MinSpareResources(Set<UUID> servers, String rc, int n) {
+		this(servers, rc, n, false);
 
 	}
 
+	/**
+	 * @param servers
+	 *            the group of nodes
+	 * @param rc
+	 *            the resource identifier
+	 * @param n
+	 *            the number of resources to be reserved
+	 * @param continuous
+	 *            {@code true} for a continuous restriction.
+	 */
 	public MinSpareResources(Set<UUID> servers, String rc, int n,
 			boolean continuous) {
 		super(Collections.<UUID> emptySet(), servers, continuous);
 		rcId = rc;
 		qty = n;
+	}
+
+	/**
+	 * Get the resource identifier.
+	 * 
+	 * @return a String
+	 */
+	public String getResource() {
+		return rcId;
+	}
+
+	/**
+	 * Get the amount of reserved resources
+	 * 
+	 * @return a positive integer
+	 */
+	public int getAmount() {
+		return qty;
 	}
 
 	@Override
@@ -67,57 +93,31 @@ public class MinSpareResources extends SatConstraint {
 		Mapping map = i.getMapping();
 		Set<UUID> onNodes = map.getOnlineNodes();
 
-		if (rcId.equals("node")) {
-			Set<UUID> vms = map.getRunningVMs(getInvolvedNodes());
+		ShareableResource rc = (ShareableResource) i
+				.getView(ShareableResource.VIEW_ID_BASE + rcId);
 
-			Collection<UUID> nodes = getInvolvedNodes();
-			Collection<UUID> idle_nodes = new ArrayList<UUID>(nodes);
-
-			for (UUID vmId : vms) {
-				UUID ni = map.getVMLocation(vmId);
-				if (idle_nodes.contains(ni))
-					idle_nodes.remove(ni);
-			}
-			spare = idle_nodes.size();
-
-			/*
-			 * for (UUID nj : getInvolvedNodes()) { boolean idle = true; for
-			 * (UUID vmId : vms) { if (nj.equals(map.getVMLocation(vmId))) {
-			 * idle = false; break; } } if (idle) spare++; }
-			 */
+		if (rc == null) {
+			return Sat.UNSATISFIED;
 		}
 
-		else {
-			ShareableResource rc = (ShareableResource) i
-					.getView(ShareableResource.VIEW_ID_BASE + rcId);
-
-			if (rc == null) {
-				return Sat.UNSATISFIED;
+		for (UUID nj : getInvolvedNodes()) {
+			if (onNodes.contains(nj)) {
+				spare += rc.get(nj);
 			}
+		}
 
-			for (UUID nj : getInvolvedNodes()) {
-				if (onNodes.contains(nj)) {
-					spare += rc.get(nj);
-					for (UUID vmId : i.getMapping().getRunningVMs(nj)) {
-						spare -= rc.get(vmId);
-					}
+		for (UUID nj : getInvolvedNodes()) {
+			if (onNodes.contains(nj)) {
+				for (UUID vmId : i.getMapping().getRunningVMs(nj)) {
+					spare -= rc.get(vmId);
+					if (spare < qty)
+						return Sat.UNSATISFIED;
 				}
 			}
 		}
 
-		if (spare >= qty)
-			return Sat.SATISFIED;
-		else
-			return Sat.UNSATISFIED;
+		return Sat.SATISFIED;
 
-	}
-
-	public String getResource() {
-		return rcId;
-	}
-
-	public int getAmount() {
-		return qty;
 	}
 
 	@Override

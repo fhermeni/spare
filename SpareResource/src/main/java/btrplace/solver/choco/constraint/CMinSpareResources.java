@@ -19,6 +19,7 @@ import btrplace.solver.choco.Slice;
 import btrplace.solver.choco.VMActionModel;
 import btrplace.solver.choco.view.CShareableResource;
 import choco.cp.solver.CPSolver;
+import choco.kernel.solver.constraints.integer.IntExp;
 import choco.kernel.solver.variables.integer.IntDomainVar;
 
 public class CMinSpareResources implements ChocoSatConstraint {
@@ -62,10 +63,12 @@ public class CMinSpareResources implements ChocoSatConstraint {
 			} else {
 				int[] alias = new int[cstr.getInvolvedNodes().size()];
 				int i = 0;
+				int capas = 0;
 				for (UUID n : cstr.getInvolvedNodes()) {
 					alias[i++] = rp.getNode(n);
+					capas += rcm.getSourceResource().get(n);
 				}
-
+				
 				TIntArrayList cUse = new TIntArrayList();
 				List<IntDomainVar> dUse = new ArrayList<IntDomainVar>();
 
@@ -80,25 +83,30 @@ public class CMinSpareResources implements ChocoSatConstraint {
 						dUse.add(rcm.getVMsAllocation(rp.getVM(vmId)));
 					}
 				}
-				rp.getAliasedCumulativesBuilder().add(cstr.getAmount(),
+				rp.getAliasedCumulativesBuilder().add(capas-cstr.getAmount(),
 						cUse.toArray(),
 						dUse.toArray(new IntDomainVar[dUse.size()]), alias);
-
+				
+				
 			}
 		}
 		List<IntDomainVar> vs = new ArrayList<IntDomainVar>();
 		List<IntDomainVar> pu = new ArrayList<IntDomainVar>();
+		
 		for (UUID u : cstr.getInvolvedNodes()) {
 			vs.add(rcm.getVirtualUsage()[rp.getNode(u)]);
 			pu.add(rcm.getPhysicalUsage()[rp.getNode(u)]);
 		}
 
 		CPSolver s = rp.getSolver();
-
-		s.post(s.geq(CPSolver.sum(vs.toArray(new IntDomainVar[vs.size()])),
-				CPSolver.minus(
-						CPSolver.sum(pu.toArray(new IntDomainVar[pu.size()])),
-						cstr.getAmount())));
+		
+		IntExp sumcon = CPSolver.sum(vs.toArray(new IntDomainVar[vs.size()]));
+		IntExp capas = CPSolver.sum(pu.toArray(new IntDomainVar[pu.size()]));
+		IntExp spare = CPSolver.minus(capas, sumcon);
+		
+		
+		s.post(s.geq(spare, cstr.getAmount()));
+		
 		return true;
 	}
 	

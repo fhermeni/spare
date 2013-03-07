@@ -91,18 +91,18 @@ public class CMinSpareResources implements ChocoSatConstraint {
 			}
 		}
 		List<IntDomainVar> vs = new ArrayList<IntDomainVar>();
-		List<IntDomainVar> pu = new ArrayList<IntDomainVar>();
+		int tot = 0;
 		
 		for (UUID u : cstr.getInvolvedNodes()) {
 			vs.add(rcm.getVirtualUsage()[rp.getNode(u)]);
-			pu.add(rcm.getPhysicalUsage()[rp.getNode(u)]);
+			tot += rcm.getSourceResource().get(u);
 		}
 
 		CPSolver s = rp.getSolver();
 		
 		IntExp sumcon = CPSolver.sum(vs.toArray(new IntDomainVar[vs.size()]));
-		IntExp capas = CPSolver.sum(pu.toArray(new IntDomainVar[pu.size()]));
-		IntExp spare = CPSolver.minus(capas, sumcon);
+		
+		IntExp spare = CPSolver.minus(tot, sumcon);
 		
 		
 		s.post(s.geq(spare, cstr.getAmount()));

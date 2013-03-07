@@ -55,10 +55,12 @@ public class CMinSpareResourcesTest extends ConstraintTestMaterial {
 		Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1,n2));
 		
 		MinSpareResources c = new MinSpareResources(setn1, "cpu", 3);
+		Overbook oc = new Overbook(m.getAllNodes(), "cpu", 1);
 		
 		c.setContinuous(false);
 		
 		l.add(c);
+		l.add(oc);
 		
 		ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
 		cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
@@ -201,11 +203,62 @@ public class CMinSpareResourcesTest extends ConstraintTestMaterial {
 
 		Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
 		
-	
+		System.out.println(plan.toString());
 		System.out.println(plan.getResult().getMapping().toString());
 		
 		
 		
+	}
+
+	
+	@Test
+	public void testwithOverBook() throws SolverException {
+		Mapping m = new DefaultMapping();
+
+		m.addOnlineNode(n1);
+		m.addOnlineNode(n2);
+		m.addOnlineNode(n3);
+
+		m.addRunningVM(vm1, n1);
+		m.addRunningVM(vm3, n1);
+		m.addRunningVM(vm2, n2);
+		m.addRunningVM(vm4, n2);
+		m.addRunningVM(vm5, n3);
+		m.addRunningVM(vm6, n3);
+		m.addReadyVM(vm7);
+
+		btrplace.model.view.ShareableResource rc = new ShareableResource("cpu",	5);
+		rc.set(vm1, 2);
+		rc.set(vm2, 2);
+		rc.set(vm3, 1);
+		rc.set(vm4, 1);
+		rc.set(vm5, 2);
+		rc.set(vm6, 2);
+		rc.set(vm7, 2);
+		
+		
+		Model mo = new DefaultModel(m);
+		mo.attach(rc);
+		
+		List<SatConstraint> l = new ArrayList<SatConstraint>();
+		
+		
+		
+		Running cr = new Running(new HashSet<UUID>(Arrays.asList(vm7)));
+		Overbook oc = new Overbook(m.getAllNodes(), "cpu", 1);
+		MinSpareResources c2 = new MinSpareResources(new HashSet<UUID>(Arrays.asList(n2)), "cpu",1);
+		
+		c2.setContinuous(false);
+		
+		l.add(c2);
+		l.add(oc);
+		l.add(cr);
+		
+		
+		ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+		cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
+		ReconfigurationPlan plan = cra.solve(mo, l);
+		System.out.println(plan.getResult().getMapping().toString());
 	}
 
 }

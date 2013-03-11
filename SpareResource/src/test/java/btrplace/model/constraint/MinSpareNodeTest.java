@@ -1,12 +1,12 @@
 package btrplace.model.constraint;
 
-import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
@@ -14,6 +14,7 @@ import btrplace.model.Mapping;
 import btrplace.model.Model;
 import btrplace.model.SatConstraint.Sat;
 import btrplace.model.view.ShareableResource;
+import btrplace.test.PremadeElements;
 
 /**
  * Unit tests for {@link MinSpareNode}.
@@ -21,7 +22,7 @@ import btrplace.model.view.ShareableResource;
  * @author Tu Huynh Dang
  */
 
-public class MinSpareNodeTest extends ConstraintTestMaterial {
+public class MinSpareNodeTest implements PremadeElements {
 
 	@Test
 	public void testNodeDiscreteIsSatisfied() {

@@ -18,18 +18,21 @@
 
 package btrplace.model.constraint;
 
-import org.testng.annotations.Test;
-import org.testng.Assert;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
 import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
 import btrplace.model.SatConstraint.Sat;
 import btrplace.model.view.ShareableResource;
+import btrplace.test.PremadeElements;
 
 /**
  * Unit tests for {@link MinSpareResources}.
@@ -37,20 +40,10 @@ import btrplace.model.view.ShareableResource;
  * @author Tu Huynh Dang
  */
 
-public class MinSpareResourcesTest extends ConstraintTestMaterial {
+public class MinSpareResourcesTest implements PremadeElements {
 
 	@Test
 	public void testMinSpareResources() {
-
-	}
-
-	@Test
-	public void testIsSatisfiedModel() {
-
-	}
-
-	@Test
-	public void testInstantiation() {
 		Set<UUID> s = new HashSet<UUID>(Arrays.asList(n1, n2));
 		MinSpareResources c = new MinSpareResources(s, "ucpu", 3);
 		Assert.assertEquals(s, c.getInvolvedNodes());
@@ -64,8 +57,11 @@ public class MinSpareResourcesTest extends ConstraintTestMaterial {
 
 		c = new MinSpareResources(s, "ucpu", 3, true);
 		Assert.assertTrue(c.isContinuous());
+	}
 
-		// System.out.println(c);
+	@Test
+	public void testIsSatisfiedModel() {
+
 	}
 
 	@Test

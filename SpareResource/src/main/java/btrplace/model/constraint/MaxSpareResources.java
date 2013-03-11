@@ -1,5 +1,9 @@
+/**
+ * 
+ */
 package btrplace.model.constraint;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
@@ -8,25 +12,16 @@ import btrplace.model.Mapping;
 import btrplace.model.Model;
 import btrplace.model.SatConstraint;
 import btrplace.model.view.ShareableResource;
+import btrplace.plan.Action;
+import btrplace.plan.ReconfigurationPlan;
+
 
 /**
- * A constraint to force a set of nodes to reserve a minimum of spare resources
- * for providing immediately to VMs in case of VMs increasing load
- * <p/>
- * When the restriction is discrete, the constraint only ensure that the set of
- * nodes reserve at least a specific number of spare resources at the end of the
- * reconfiguration process. The nodes may have fewer number of spare resources
- * in the reconfiguration process.
- * <p/>
- * When the restriction is continuous, if a VM is going to be relocated in this
- * set of nodes, the nodes must have more spare resources than the resource
- * demand of the VM pluses the reserved number.
- * 
  * @author Tu Huynh Dang
+ *
  */
-
-public class MinSpareResources extends SatConstraint {
-
+public class MaxSpareResources extends SatConstraint {
+	
 	/**
 	 * Resource identifier
 	 */
@@ -47,28 +42,17 @@ public class MinSpareResources extends SatConstraint {
 	 * @param n
 	 *            the number of resources to be reserved
 	 */
-	public MinSpareResources(Set<UUID> servers, String rc, int n) {
+	public MaxSpareResources(Set<UUID> servers, String rc, int n) {
 		this(servers, rc, n, false);
 
 	}
-
-	/**
-	 * @param servers
-	 *            the group of nodes
-	 * @param rc
-	 *            the resource identifier
-	 * @param n
-	 *            the number of resources to be reserved
-	 * @param continuous
-	 *            {@code true} for a continuous restriction.
-	 */
-	public MinSpareResources(Set<UUID> servers, String rc, int n,
-			boolean continuous) {
-		super(Collections.<UUID> emptySet(), servers, continuous);
+	
+	public MaxSpareResources(Collection<UUID> servers, String rc, int n,boolean c) {
+		super(Collections.<UUID> emptySet(), servers, c);
 		rcId = rc;
 		qty = n;
 	}
-
+	
 	/**
 	 * Get the resource identifier.
 	 * 
@@ -110,16 +94,33 @@ public class MinSpareResources extends SatConstraint {
 			if (onNodes.contains(nj)) {
 				for (UUID vmId : i.getMapping().getRunningVMs(nj)) {
 					spare -= rc.get(vmId);
-					if (spare < qty)
-						return Sat.UNSATISFIED;
+					if (spare <= qty)
+						return Sat.SATISFIED;
 				}
 			}
 		}
 
-		return Sat.SATISFIED;
-
+		return Sat.UNSATISFIED;
 	}
-
+	
+	@Override
+    public Sat isSatisfied(ReconfigurationPlan p) {
+        Model mo = p.getOrigin();
+        if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
+            return Sat.UNSATISFIED;
+        }
+        mo = p.getOrigin().clone();
+        for (Action a : p) {
+            if (!a.apply(mo)) {
+                return Sat.UNSATISFIED;
+            }
+            if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
+                return Sat.UNSATISFIED;
+            }
+        }
+        return Sat.SATISFIED;
+    }
+	
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -134,7 +135,7 @@ public class MinSpareResources extends SatConstraint {
 
 		MinSpareResources that = (MinSpareResources) o;
 
-		return qty == that.qty && rcId.equals(that.rcId)
+		return qty == that.getAmount() && rcId.equals(that.getResource())
 				&& getInvolvedNodes().equals(that.getInvolvedNodes())
 				&& this.isContinuous() == that.isContinuous();
 	}
@@ -152,7 +153,7 @@ public class MinSpareResources extends SatConstraint {
 	@Override
 	public String toString() {
 		StringBuilder b = new StringBuilder();
-		b.append("minSpareResources(").append("nodes=")
+		b.append("maxSpareResources(").append("nodes=")
 				.append(getInvolvedNodes()).append(", rc=").append(rcId)
 				.append(", amount=").append(qty);
 

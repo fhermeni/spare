@@ -19,6 +19,11 @@ import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.MigrateVM;
 import btrplace.test.PremadeElements;
 
+/**
+ * Unit tests for {@link MaxSpareResources}.
+ * 
+ * @author Tu Huynh Dang
+ */
 public class MaxSpareResourcesTest implements PremadeElements {
 
   @Test
@@ -49,7 +54,7 @@ public class MaxSpareResourcesTest implements PremadeElements {
 		map.addOnlineNode(n1);
 		map.addOnlineNode(n2);
 		map.addOnlineNode(n3);
-
+		map.addOfflineNode(n4);
 		map.addRunningVM(vm1, n1);
 		map.addRunningVM(vm2, n1);
 		map.addRunningVM(vm3, n2);
@@ -85,7 +90,7 @@ public class MaxSpareResourcesTest implements PremadeElements {
 		map.addOnlineNode(n1);
 		map.addOnlineNode(n2);
 		map.addOnlineNode(n3);
-
+		map.addOfflineNode(n4);
 		map.addRunningVM(vm1, n1);
 		map.addRunningVM(vm2, n1);
 		map.addRunningVM(vm3, n2);
@@ -101,14 +106,15 @@ public class MaxSpareResourcesTest implements PremadeElements {
 		rc.set(n2, 5);
 		rc.set(vm4, 1);
 		
-		
 		mo.attach(rc);
+		
 		Set<UUID> node1and3 = new HashSet<UUID>(Arrays.asList(n1, n3));
 		
 
 		MaxSpareResources msr = new MaxSpareResources(node1and3, "vcpu", 2);
 		Overbook oc = new Overbook(map.getAllNodes(), "vcpu", 1);
 				
+		
 		ReconfigurationPlan plan = new DefaultReconfigurationPlan(mo);
 		Assert.assertEquals(msr.isSatisfied(plan), Sat.SATISFIED);
 		Assert.assertEquals(oc.isSatisfied(plan), Sat.SATISFIED);

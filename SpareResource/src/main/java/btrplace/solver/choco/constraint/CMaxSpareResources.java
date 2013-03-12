@@ -117,7 +117,7 @@ public class CMaxSpareResources implements ChocoSatConstraint {
     }
 
     /**
-     * The builder associated to that constraint.
+     * The builder associated to this constraint
      */
     public static class Builder implements ChocoSatConstraintBuilder {
  

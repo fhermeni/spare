@@ -12,56 +12,43 @@ import btrplace.plan.Action;
 import btrplace.plan.ReconfigurationPlan;
 
 /**
-* A constraint to force a set of nodes to reserve a minimum number of spare nodes
-* for providing immediately resources to VMs in case of VMs increasing load
+* A constraint to force a set of nodes to have a maximum number (n) of nodes to be online
 * <p/>
 * In discrete restriction mode, the constraint only ensure that the set of
-* nodes reserve at least n number of spare nodes at the end of the
-* reconfiguration process. The nodes may have fewer than n number of spare nodes
+* nodes have at most n nodes being online at the end of the reconfiguration process. 
+* The set of nodes may have more number than n nodes being online
 * in the reconfiguration process.
 * <p/>
-* In continuous restriction mode, there are always at least n number of spare nodes
-* in the reconfiguration process.
+* In continuous restriction mode, a boot node action is performed only when the number of 
+* online nodes is smaller than n.     
 * 
 * @author Tu Huynh Dang
 */
 
-public class MinSpareNode extends SatConstraint {
+public class MaxOnlines extends SatConstraint {
 
 	/**
 	 * number of reserved nodes
 	 */
 	private final int qty;
-
+	
 	/**
-	 * Make a new constraint with a discrete restriction.
-	 * 
-	 * @param nodes
-	 *            the group of nodes
-	 * @param n
-	 *            the number of nodes to be reserved
+	 * Make new constraint specifying restriction explicitly
+	 * @param nodes	The set of nodes
+	 * @param n		The reserved number of spare nodes 
+	 * @param continuous {@code true} for continuous restriction
 	 */
-	public MinSpareNode(Set<UUID> nds, int n) {
-		this(nds, n, false);
-
-	}
-
-	/**
-	 * Make a new constraint stating the restriction explicitly
-	 * @param servers
-	 *            the group of nodes
-	 * @param n
-	 *            the number of nodes to be reserved
-	 * @param continuous
-	 *            {@code true} for a continuous restriction.
-	 */
-	public MinSpareNode(Set<UUID> servers, int n, boolean continuous) {
-		super(Collections.<UUID> emptySet(), servers, continuous);
+	public MaxOnlines(Set<UUID> nodes, int n, boolean continuous) {
+		super(Collections.<UUID> emptySet(), nodes, continuous);
 		qty = n;
 	}
-
+	
+	public MaxOnlines(Set<UUID> nodes, int n) {
+		this(nodes, n, false);
+	}
+	
 	/**
-	 * Get the amount of reserved nodes
+	 * Get the amount of spare nodes
 	 * 
 	 * @return a positive integer
 	 */
@@ -71,23 +58,18 @@ public class MinSpareNode extends SatConstraint {
 
 	@Override
 	public Sat isSatisfied(Model i) {
-
-		Mapping map = i.getMapping();
 		
+		Mapping map = i.getMapping();
+
 		Set<UUID> onnodes = map.getOnlineNodes();
 		Set<UUID> nodes = new HashSet<UUID>(onnodes);
 		nodes.retainAll(getInvolvedNodes());
-		Set<UUID> idle_nodes = new HashSet<UUID>(nodes);
-
-		for (UUID n : nodes) {
-			if(!map.getRunningVMs(n).isEmpty()) {
-				idle_nodes.remove(n);
-			}
-			if (idle_nodes.size() < qty)
+		
+			if (nodes.size() > qty)
 				return Sat.UNSATISFIED;
-		}
+		
 		return Sat.SATISFIED;
-
+		
 	}
 	
 	@Override
@@ -139,7 +121,7 @@ public class MinSpareNode extends SatConstraint {
 	@Override
 	public String toString() {
 		StringBuilder b = new StringBuilder();
-		b.append("minSpareNode(").append("nodes=")
+		b.append("maxOnlines(").append("nodes=")
 				.append(getInvolvedNodes()).append(", amount=").append(qty);
 
 		if (isContinuous()) {

@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import btrplace.model.Model;
 import btrplace.model.SatConstraint;
-import btrplace.model.constraint.MinSpareNode;
+import btrplace.model.constraint.MaxSpareNode;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoSatConstraint;
 import btrplace.solver.choco.ChocoSatConstraintBuilder;
@@ -13,24 +13,24 @@ import btrplace.solver.choco.ReconfigurationProblem;
 import choco.cp.solver.CPSolver;
 import choco.kernel.solver.variables.integer.IntDomainVar;
 
-public class CMinSpareNode implements ChocoSatConstraint {
+public class CMaxSpareNode implements ChocoSatConstraint {
 	
-	private final MinSpareNode cstr;
+	private final MaxSpareNode cstr;
 	
 	/**
 	 * Make a new constraint.
 	 * 
 	 * @param msn
-	 *            is minSpareNode constraint to rely on
+	 *            is maxSpareNode constraint to rely on
 	 */
-	public CMinSpareNode(MinSpareNode msn) {
+	public CMaxSpareNode(MaxSpareNode msn) {
 		super();
 		cstr = msn;
 	}
 	
 	@Override
 	public Set<UUID> getMisPlacedVMs(Model m) {
-		return m.getMapping().getRunningVMs(cstr.getInvolvedNodes());
+		return m.getMapping().getRunningVMs();
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class CMinSpareNode implements ChocoSatConstraint {
 		IntDomainVar idle = solver.createBoundIntVar("Nidles", 0, cstr.getInvolvedNodes().size());
 		
 		solver.post(solver.occurence(nodeVM, idle, 0));
-		solver.post(solver.geq(idle,cstr.getAmount()));
+		solver.post(solver.leq(idle,cstr.getAmount()));
 		
 		return true;
 	}
@@ -75,12 +75,12 @@ public class CMinSpareNode implements ChocoSatConstraint {
  
         @Override
 		public Class<? extends SatConstraint> getKey() {
-            return MinSpareNode.class;
+            return MaxSpareNode.class;
         }
 
         @Override
-		public CMinSpareNode build(SatConstraint cstr) {
-            return new CMinSpareNode((MinSpareNode) cstr);
+		public CMaxSpareNode build(SatConstraint cstr) {
+            return new CMaxSpareNode((MaxSpareNode) cstr);
         }
     }
 

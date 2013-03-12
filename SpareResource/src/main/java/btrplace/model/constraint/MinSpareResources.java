@@ -1,6 +1,7 @@
 package btrplace.model.constraint;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -8,19 +9,21 @@ import btrplace.model.Mapping;
 import btrplace.model.Model;
 import btrplace.model.SatConstraint;
 import btrplace.model.view.ShareableResource;
+import btrplace.plan.Action;
+import btrplace.plan.ReconfigurationPlan;
 
 /**
- * A constraint to force a set of nodes to reserve a minimum of spare resources
- * for providing immediately to VMs in case of VMs increasing load
+ * A constraint to force a set of nodes to reserve a minimum number (n) of spare resources
+ * for providing immediately resources to VMs in case of VMs increasing load
  * <p/>
- * When the restriction is discrete, the constraint only ensure that the set of
- * nodes reserve at least a specific number of spare resources at the end of the
- * reconfiguration process. The nodes may have fewer number of spare resources
+ * In discrete restriction mode, the constraint only ensure that the set of
+ * nodes reserve at least n number of spare resources at the end of the
+ * reconfiguration process. The nodes may have fewer than n number of spare resources
  * in the reconfiguration process.
  * <p/>
- * When the restriction is continuous, if a VM is going to be relocated in this
+ * In continuous restriction mode, if a VM is going to be relocated in this
  * set of nodes, the nodes must have more spare resources than the resource
- * demand of the VM pluses the reserved number.
+ * demand of the VM pluses n number.
  * 
  * @author Tu Huynh Dang
  */
@@ -91,7 +94,9 @@ public class MinSpareResources extends SatConstraint {
 	public Sat isSatisfied(Model i) {
 		int spare = 0;
 		Mapping map = i.getMapping();
-		Set<UUID> onNodes = map.getOnlineNodes();
+		Set<UUID> onnodes = map.getOnlineNodes();
+		Set<UUID> nodes = new HashSet<UUID>(onnodes);
+		nodes.retainAll(getInvolvedNodes());
 
 		ShareableResource rc = (ShareableResource) i
 				.getView(ShareableResource.VIEW_ID_BASE + rcId);
@@ -100,25 +105,39 @@ public class MinSpareResources extends SatConstraint {
 			return Sat.UNSATISFIED;
 		}
 
-		for (UUID nj : getInvolvedNodes()) {
-			if (onNodes.contains(nj)) {
-				spare += rc.get(nj);
-			}
+		for (UUID nj : nodes) { 
+			spare += rc.get(nj);
 		}
 
-		for (UUID nj : getInvolvedNodes()) {
-			if (onNodes.contains(nj)) {
+		for (UUID nj : nodes) {
 				for (UUID vmId : i.getMapping().getRunningVMs(nj)) {
 					spare -= rc.get(vmId);
 					if (spare < qty)
 						return Sat.UNSATISFIED;
 				}
-			}
 		}
 
 		return Sat.SATISFIED;
 
 	}
+	
+	@Override
+    public Sat isSatisfied(ReconfigurationPlan p) {
+        Model mo = p.getOrigin();
+        if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
+            return Sat.UNSATISFIED;
+        }
+        mo = p.getOrigin().clone();
+        for (Action a : p) {
+            if (!a.apply(mo)) {
+                return Sat.UNSATISFIED;
+            }
+            if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
+                return Sat.UNSATISFIED;
+            }
+        }
+        return Sat.SATISFIED;
+    }
 
 	@Override
 	public boolean equals(Object o) {

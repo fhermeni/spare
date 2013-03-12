@@ -37,13 +37,13 @@ public class CMinSpareResources implements ChocoSatConstraint {
 		this.cstr = msr;
 	}
 
+	@Override
 	public Set<UUID> getMisPlacedVMs(Model m) {
 		return m.getMapping().getRunningVMs(cstr.getInvolvedNodes());
 	}
 
+	@Override
 	public boolean inject(ReconfigurationProblem rp) throws SolverException {
-		// TODO Auto-generated method stub
-
 		CShareableResource rcm = (CShareableResource) rp
 				.getView(ShareableResource.VIEW_ID_BASE + cstr.getResource());
 		if (rcm == null) {
@@ -116,16 +116,18 @@ public class CMinSpareResources implements ChocoSatConstraint {
     }
 
     /**
-     * The builder associated to that constraint.
+     * The builder associated to this constraint
      */
     public static class Builder implements ChocoSatConstraintBuilder {
  
-        public Class<? extends SatConstraint> getKey() {
+        @Override
+		public Class<? extends SatConstraint> getKey() {
             return MinSpareResources.class;
         }
 
 
-        public CMinSpareResources build(SatConstraint cstr) {
+        @Override
+		public CMinSpareResources build(SatConstraint cstr) {
             return new CMinSpareResources((MinSpareResources) cstr);
         }
     }

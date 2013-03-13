@@ -90,19 +90,33 @@ public class CMinSpareResources implements ChocoSatConstraint {
 				
 			}
 		}
-		List<IntDomainVar> vs = new ArrayList<IntDomainVar>();
-		int tot = 0;
-		
-		for (UUID u : cstr.getInvolvedNodes()) {
-			vs.add(rcm.getVirtualUsage()[rp.getNode(u)]);
-			tot += rcm.getSourceResource().get(u);
-		}
+		// get future state of involved nodes
+				List<IntDomainVar> nodes_state = new ArrayList<IntDomainVar>(cstr.getInvolvedNodes().size());
+				for(UUID ni : cstr.getInvolvedNodes()) {
+					nodes_state.add(rp.getNodeAction(ni).getState());
+				}
+				
+				// get future resource usages of each involved nodes
+				List<IntDomainVar> vs = new ArrayList<IntDomainVar>();
+				
+				// caps is capacity of all involved nodes
+				int[] caps = new int[nodes_state.size()];
+				int i = 0;
+				for (UUID u : cstr.getInvolvedNodes()) {
+					vs.add(rcm.getVirtualUsage()[rp.getNode(u)]);
+					caps[i++] = rcm.getSourceResource().get(u);
+				}
 
-		CPSolver s = rp.getSolver();
-		
-		IntExp sumcon = CPSolver.sum(vs.toArray(new IntDomainVar[vs.size()]));
-		
-		IntExp spare = CPSolver.minus(tot, sumcon);
+				CPSolver s = rp.getSolver();
+				
+				// sum all capacity of involved nodes
+				IntExp sumcap = s.scalar(caps, nodes_state.toArray(new IntDomainVar[nodes_state.size()])); 
+				
+				// sum all resource consumption of involved nodes
+				IntExp sumcon = CPSolver.sum(vs.toArray(new IntDomainVar[vs.size()]));
+				
+				// number of spare resources is the difference between capacity and usage
+				IntExp spare = CPSolver.minus(sumcap, sumcon);
 		
 		
 		s.post(s.geq(spare, cstr.getAmount()));

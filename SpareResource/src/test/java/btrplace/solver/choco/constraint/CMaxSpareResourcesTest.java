@@ -129,4 +129,90 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 		System.out.println(plan.toString());
 		System.out.println(plan.getResult().getMapping().toString());
 	}
+	
+	@Test
+	public void testCMaxSpareResourcesDiscrete3() throws SolverException {
+			
+		Mapping m = new DefaultMapping();
+
+		m.addOnlineNode(n1);
+		m.addOnlineNode(n2);
+		m.addOnlineNode(n3);
+
+		m.addRunningVM(vm1, n1);
+		m.addRunningVM(vm2, n2);
+		m.addRunningVM(vm3, n1);
+		m.addRunningVM(vm4, n2);
+		m.addRunningVM(vm5, n3);
+
+		btrplace.model.view.ShareableResource rc = new ShareableResource("vcpu",5);
+		rc.set(vm1, 2);
+		rc.set(vm2, 2);
+		rc.set(vm3, 1);
+		rc.set(vm4, 1);
+		rc.set(vm5, 3);
+		Model mo = new DefaultModel(m);
+		mo.attach(rc);
+		List<SatConstraint> l = new ArrayList<SatConstraint>();
+		
+		Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1,n2, n3));
+		
+		MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 5);
+		Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
+						
+		l.add(c);
+		l.add(oc);
+		
+		ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+		cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
+		ReconfigurationPlan plan = cra.solve(mo, l);
+
+		Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+		System.out.println(plan.getOrigin().getMapping().toString());
+		System.out.println(plan.toString());
+		System.out.println(plan.getResult().getMapping().toString());
+	}
+	
+	@Test
+	public void testCMaxSpareResourcesDiscrete4() throws SolverException {
+			
+		Mapping m = new DefaultMapping();
+
+		m.addOnlineNode(n1);
+		m.addOnlineNode(n2);
+		m.addOnlineNode(n3);
+
+		m.addRunningVM(vm1, n1);
+		m.addRunningVM(vm2, n2);
+		m.addRunningVM(vm3, n1);
+		m.addRunningVM(vm4, n2);
+		m.addRunningVM(vm5, n3);
+
+		btrplace.model.view.ShareableResource rc = new ShareableResource("vcpu",8);
+		rc.set(vm1, 1);
+		rc.set(vm2, 1);
+		rc.set(vm3, 1);
+		rc.set(vm4, 1);
+		rc.set(vm5, 3);
+		Model mo = new DefaultModel(m);
+		mo.attach(rc);
+		List<SatConstraint> l = new ArrayList<SatConstraint>();
+		
+		Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1,n2, n3));
+		
+		MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 5);
+		Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
+						
+		l.add(c);
+		l.add(oc);
+		
+		ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+		cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
+		ReconfigurationPlan plan = cra.solve(mo, l);
+
+		Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+		System.out.println(plan.getOrigin().getMapping().toString());
+		System.out.println(plan.toString());
+		System.out.println(plan.getResult().getMapping().toString());
+	}
 }

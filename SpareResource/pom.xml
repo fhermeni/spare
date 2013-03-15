@@ -32,7 +32,7 @@
 			<artifactId>solver-bundle</artifactId>
 			<version>0.25</version>
 		</dependency>
-	<dependency>
+		<dependency>
    <groupId>btrplace</groupId>
    <artifactId>solver-testMaterial</artifactId>
    <version>0.24</version>

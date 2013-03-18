@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>btrplace</groupId>
 			<artifactId>solver-bundle</artifactId>
-			<version>0.25</version>
+			<version>0.26-SNAPSHOT</version>
 		</dependency>
 		<dependency>
    <groupId>btrplace</groupId>

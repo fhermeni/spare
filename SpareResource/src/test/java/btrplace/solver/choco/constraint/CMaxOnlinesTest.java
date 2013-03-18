@@ -18,17 +18,21 @@ import btrplace.model.Model;
 import btrplace.model.SatConstraint;
 import btrplace.model.SatConstraint.Sat;
 import btrplace.model.constraint.MaxOnlines;
+import btrplace.model.constraint.Offline;
 import btrplace.model.constraint.Online;
 import btrplace.model.constraint.Overbook;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
+import btrplace.plan.event.BootNode;
+import btrplace.plan.event.ShutdownNode;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
+import btrplace.solver.choco.durationEvaluator.ConstantDuration;
 import btrplace.test.PremadeElements;
 
 public class CMaxOnlinesTest implements PremadeElements {
-
+	@Test
 	public void DiscreteMaxonlinesTest() throws SolverException {
 
 		Mapping map = new DefaultMapping();
@@ -58,7 +62,7 @@ public class CMaxOnlinesTest implements PremadeElements {
 		System.out.println(plan.toString());
 		System.out.println(plan.getResult().getMapping().toString());
 	}
-
+	@Test
 	public void DiscreteMaxonlinesTest2() throws SolverException {
 
 		ShareableResource resources = new ShareableResource("vcpu", 1);
@@ -143,11 +147,48 @@ public class CMaxOnlinesTest implements PremadeElements {
 		constraints.add(overbook);
 
 		ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
-		cra.setVerbosity(3);
+		cra.setVerbosity(2);
 		cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
 
 		ReconfigurationPlan plan = cra.solve(model, constraints);
+		Assert.assertNotNull(plan);
+		System.out.println(plan.toString());
+		System.out.println(plan.getResult().getMapping().toString());
+	}
+	
+	@Test
+	public void ContinuousMaxOnlinesSimplestTest() throws SolverException {
+			
 
+		Mapping map = new DefaultMapping();
+		map.addOnlineNode(n1);
+		map.addOfflineNode(n2);
+		
+
+
+		Model model = new DefaultModel(map);
+		
+		Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1,n2));
+
+		MaxOnlines maxon = new MaxOnlines(nodes, 1);
+
+		Online oncstr = new Online(new HashSet<UUID>(Arrays.asList(n2)));
+		
+		List<SatConstraint> constraints = new ArrayList<SatConstraint>();
+
+		maxon.setContinuous(true);
+
+		constraints.add(maxon);
+		constraints.add(oncstr);
+		constraints.add(new Offline(new HashSet<UUID>(Arrays.asList(n1))));
+		ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+		cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(5));
+		cra.getDurationEvaluators().register(BootNode.class, new ConstantDuration(5));
+		cra.setVerbosity(2);
+		cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
+
+		ReconfigurationPlan plan = cra.solve(model, constraints);
+		Assert.assertNotNull(plan);
 		System.out.println(plan.toString());
 		System.out.println(plan.getResult().getMapping().toString());
 	}

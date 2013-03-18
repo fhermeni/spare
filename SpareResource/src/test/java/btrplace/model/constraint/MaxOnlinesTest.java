@@ -71,7 +71,7 @@ public class MaxOnlinesTest implements PremadeElements {
 	  
 	  Assert.assertEquals(mo.isSatisfied(plan), Sat.SATISFIED);
 	  
-	  plan.add(new BootNode(n3, 5, 9));
+	  plan.add(new BootNode(n3, 3, 9));
 	  Assert.assertEquals(mo.isSatisfied(plan), Sat.UNSATISFIED);
 	  
 	  plan.add(new ShutdownNode(n2, 0, 5));

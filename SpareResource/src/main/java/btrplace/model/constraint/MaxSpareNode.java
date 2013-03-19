@@ -11,22 +11,20 @@ import btrplace.model.SatConstraint;
 import btrplace.plan.Action;
 import btrplace.plan.ReconfigurationPlan;
 
-
 /**
-* A constraint to force a set of nodes to reserve a maximum number of spare nodes
-* for efficient usage of nodes
-* <p/>
-* In discrete restriction mode, the constraint only ensure that the set of
-* nodes reserve at least n number of spare nodes at the end of the
-* reconfiguration process. The nodes may have fewer than n number of spare nodes
-* in the reconfiguration process.
-* <p/>
-* In continuous restriction mode, there are always at most n number of spare nodes
-* in the reconfiguration process.
-* 
-* @author Tu Huynh Dang
-*/
-
+ * A constraint to force a set of nodes to reserve a maximum number of spare
+ * nodes for efficient usage of nodes
+ * <p/>
+ * In discrete restriction mode, the constraint only ensure that the set of
+ * nodes reserve at least n number of spare nodes at the end of the
+ * reconfiguration process. The nodes may have fewer than n number of spare
+ * nodes in the reconfiguration process.
+ * <p/>
+ * In continuous restriction mode, there are always at most n number of spare
+ * nodes in the reconfiguration process.
+ * 
+ * @author Tu Huynh Dang
+ */
 
 public class MaxSpareNode extends SatConstraint {
 
@@ -50,6 +48,7 @@ public class MaxSpareNode extends SatConstraint {
 
 	/**
 	 * Make a new constraint stating the restriction explicitly
+	 * 
 	 * @param servers
 	 *            the group of nodes
 	 * @param n
@@ -75,42 +74,42 @@ public class MaxSpareNode extends SatConstraint {
 	public Sat isSatisfied(Model i) {
 
 		Mapping map = i.getMapping();
-		
+
 		Set<UUID> onnodes = map.getOnlineNodes();
 		Set<UUID> nodes = new HashSet<UUID>(onnodes);
 		nodes.retainAll(getInvolvedNodes());
 		Set<UUID> idle_nodes = new HashSet<UUID>();
 
-		for(UUID n : nodes) {
-			if( map.getRunningVMs(n).isEmpty()) {
+		for (UUID n : nodes) {
+			if (map.getRunningVMs(n).isEmpty()) {
 				idle_nodes.add(n);
 			}
-			if(idle_nodes.size() > qty) {
+			if (idle_nodes.size() > qty) {
 				return Sat.UNSATISFIED;
 			}
 		}
 		return Sat.SATISFIED;
 
 	}
-	
+
 	@Override
-    public Sat isSatisfied(ReconfigurationPlan p) {
-        Model mo = p.getOrigin();
-        if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-            return Sat.UNSATISFIED;
-        }
-        mo = p.getOrigin().clone();
-        for (Action a : p) {
-            if (!a.apply(mo)) {
-                return Sat.UNSATISFIED;
-            }
-            if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-                return Sat.UNSATISFIED;
-            }
-        }
-        return Sat.SATISFIED;
-    }
-	
+	public Sat isSatisfied(ReconfigurationPlan p) {
+		Model mo = p.getOrigin();
+		if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
+			return Sat.UNSATISFIED;
+		}
+		mo = p.getOrigin().clone();
+		for (Action a : p) {
+			if (!a.apply(mo)) {
+				return Sat.UNSATISFIED;
+			}
+			if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
+				return Sat.UNSATISFIED;
+			}
+		}
+		return Sat.SATISFIED;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -125,8 +124,7 @@ public class MaxSpareNode extends SatConstraint {
 
 		MinSpareResources that = (MinSpareResources) o;
 
-		return qty == that.getAmount() 
-				&& getInvolvedNodes().equals(that.getInvolvedNodes())
+		return qty == that.getAmount() && getInvolvedNodes().equals(that.getInvolvedNodes())
 				&& this.isContinuous() == that.isContinuous();
 	}
 
@@ -134,16 +132,15 @@ public class MaxSpareNode extends SatConstraint {
 	public int hashCode() {
 		int result = super.hashCode();
 		result = 31 * result + qty;
-		result = 31 * result + getInvolvedNodes().hashCode()
-				+ (isContinuous() ? 1 : 0);
+		result = 31 * result + getInvolvedNodes().hashCode() + (isContinuous() ? 1 : 0);
 		return result;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder b = new StringBuilder();
-		b.append("maxSpareNode(").append("nodes=")
-				.append(getInvolvedNodes()).append(", amount=").append(qty);
+		b.append("maxSpareNode(").append("nodes=").append(getInvolvedNodes()).append(", amount=")
+				.append(qty);
 
 		if (isContinuous()) {
 			b.append(", continuous");

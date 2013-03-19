@@ -45,18 +45,16 @@ public class CMaxSpareResources implements ChocoSatConstraint {
 	@Override
 	public boolean inject(ReconfigurationProblem rp) throws SolverException {
 
-		CShareableResource rcm = (CShareableResource) rp
-				.getView(ShareableResource.VIEW_ID_BASE + cstr.getResource());
+		CShareableResource rcm = (CShareableResource) rp.getView(ShareableResource.VIEW_ID_BASE
+				+ cstr.getResource());
 		if (rcm == null) {
-			throw new SolverException(rp.getSourceModel(),
-					"No resource associated to identifier '"
-							+ cstr.getResource() + "'");
+			throw new SolverException(rp.getSourceModel(), "No resource associated to identifier '"
+					+ cstr.getResource() + "'");
 		}
 
 		if (cstr.isContinuous()) {
 			// The constraint must be already satisfied
-			if (!cstr.isSatisfied(rp.getSourceModel()).equals(
-					SatConstraint.Sat.SATISFIED)) {
+			if (!cstr.isSatisfied(rp.getSourceModel()).equals(SatConstraint.Sat.SATISFIED)) {
 				rp.getLogger()
 						.error("The constraint '{}' must be already satisfied to provide a continuous restriction",
 								cstr);
@@ -69,7 +67,7 @@ public class CMaxSpareResources implements ChocoSatConstraint {
 					alias[i++] = rp.getNode(n);
 					capas += rcm.getSourceResource().get(n);
 				}
-				
+
 				TIntArrayList cUse = new TIntArrayList();
 				List<IntDomainVar> dUse = new ArrayList<IntDomainVar>();
 
@@ -84,22 +82,20 @@ public class CMaxSpareResources implements ChocoSatConstraint {
 						dUse.add(rcm.getVMsAllocation(rp.getVM(vmId)));
 					}
 				}
-				rp.getAliasedCumulativesBuilder().add(capas-cstr.getAmount(),
-						cUse.toArray(),
+				rp.getAliasedCumulativesBuilder().add(capas - cstr.getAmount(), cUse.toArray(),
 						dUse.toArray(new IntDomainVar[dUse.size()]), alias);
-				
-				
+
 			}
 		}
 		// get future state of involved nodes
 		List<IntDomainVar> nodes_state = new ArrayList<IntDomainVar>(cstr.getInvolvedNodes().size());
-		for(UUID ni : cstr.getInvolvedNodes()) {
+		for (UUID ni : cstr.getInvolvedNodes()) {
 			nodes_state.add(rp.getNodeAction(ni).getState());
 		}
-		
+
 		// get future resource usages of each involved nodes
 		List<IntDomainVar> vs = new ArrayList<IntDomainVar>();
-		
+
 		// caps is capacity of all involved nodes
 		int[] caps = new int[nodes_state.size()];
 		int i = 0;
@@ -109,41 +105,40 @@ public class CMaxSpareResources implements ChocoSatConstraint {
 		}
 
 		CPSolver s = rp.getSolver();
-		
+
 		// sum all capacity of involved nodes
-		IntExp sumcap = s.scalar(caps, nodes_state.toArray(new IntDomainVar[nodes_state.size()])); 
-		
+		IntExp sumcap = s.scalar(caps, nodes_state.toArray(new IntDomainVar[nodes_state.size()]));
+
 		// sum all resource consumption of involved nodes
 		IntExp sumcon = CPSolver.sum(vs.toArray(new IntDomainVar[vs.size()]));
-		
-		// number of spare resources is the difference between capacity and usage
+
+		// number of spare resources is the difference between capacity and
+		// usage
 		IntExp spare = CPSolver.minus(sumcap, sumcon);
-		
-		
+
 		s.post(s.leq(spare, cstr.getAmount()));
-		
+
 		return true;
 	}
-	
-    @Override
-    public String toString() {
-        return cstr.toString();
-    }
 
-    /**
-     * The builder associated to this constraint
-     */
-    public static class Builder implements ChocoSatConstraintBuilder {
- 
-        @Override
+	@Override
+	public String toString() {
+		return cstr.toString();
+	}
+
+	/**
+	 * The builder associated to this constraint
+	 */
+	public static class Builder implements ChocoSatConstraintBuilder {
+
+		@Override
 		public Class<? extends SatConstraint> getKey() {
-            return MaxSpareResources.class;
-        }
+			return MaxSpareResources.class;
+		}
 
-
-        @Override
+		@Override
 		public CMaxSpareResources build(SatConstraint cstr) {
-            return new CMaxSpareResources((MaxSpareResources) cstr);
-        }
-    }
+			return new CMaxSpareResources((MaxSpareResources) cstr);
+		}
+	}
 }

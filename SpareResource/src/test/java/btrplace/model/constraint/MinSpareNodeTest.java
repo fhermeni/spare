@@ -28,7 +28,7 @@ import btrplace.test.PremadeElements;
 public class MinSpareNodeTest implements PremadeElements {
 
 	@Test
-	public void DiscreteMinSpareNodeTest() {
+	public void discreteMinSpareNodeTest() {
 		Mapping map = new DefaultMapping();
 		map.addOnlineNode(n1);
 		map.addOnlineNode(n2);
@@ -61,9 +61,9 @@ public class MinSpareNodeTest implements PremadeElements {
 		Assert.assertEquals(msn.isSatisfied(mo), Sat.SATISFIED);
 
 	}
-	
+
 	@Test
-	public void ContinuousMinSpareNodeTest() {
+	public void continuousMinSpareNodeTest() {
 		Mapping map = new DefaultMapping();
 		map.addOnlineNode(n1);
 		map.addOnlineNode(n2);
@@ -73,7 +73,6 @@ public class MinSpareNodeTest implements PremadeElements {
 		map.addRunningVM(vm1, n1);
 		map.addRunningVM(vm2, n1);
 		map.addRunningVM(vm3, n2);
-		
 
 		Model mo = new DefaultModel(map);
 		ShareableResource rc = new ShareableResource("mem", 1);
@@ -88,15 +87,15 @@ public class MinSpareNodeTest implements PremadeElements {
 
 		MinSpareNode msn = new MinSpareNode(nodes, 1);
 		Overbook oc = new Overbook(map.getAllNodes(), "mem", 1);
-		
+
 		ReconfigurationPlan plan = new DefaultReconfigurationPlan(mo);
 		Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
 		Assert.assertEquals(oc.isSatisfied(plan), Sat.SATISFIED);
-		
+
 		plan.add(new MigrateVM(vm1, n1, n3, 5, 9));
 		Assert.assertEquals(msn.isSatisfied(plan), Sat.UNSATISFIED);
 		Assert.assertEquals(oc.isSatisfied(plan), Sat.SATISFIED);
-		
+
 		plan.add(new MigrateVM(vm3, n2, n3, 0, 5));
 		Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
 		Assert.assertEquals(oc.isSatisfied(plan), Sat.SATISFIED);

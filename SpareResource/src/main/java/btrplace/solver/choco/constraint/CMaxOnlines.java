@@ -16,7 +16,6 @@ import btrplace.solver.choco.NodeActionModel;
 import btrplace.solver.choco.ReconfigurationProblem;
 import choco.cp.solver.CPSolver;
 import choco.cp.solver.constraints.global.scheduling.cumulative.Cumulative;
-import choco.kernel.solver.ContradictionException;
 import choco.kernel.solver.constraints.integer.IntExp;
 import choco.kernel.solver.variables.integer.IntDomainVar;
 import choco.kernel.solver.variables.scheduling.TaskVar;
@@ -60,55 +59,43 @@ public class CMaxOnlines implements ChocoSatConstraint {
 				for (UUID n : cstr.getInvolvedNodes()) {
 					nodeIdx[i++] = rp.getNode(n);
 				}
-				
 				List<TaskVar> stateTasks = new ArrayList<TaskVar>();
-				IntDomainVar consumption = solver.createIntVar("consumption", IntDomainVar.BOUNDS,	0, cstr.getAmount());
-				IntDomainVar cstrAmount = solver.createIntVar("capacity", IntDomainVar.BOUNDS,	cstr.getAmount(), cstr.getAmount());
-				IntDomainVar upperbound = solver.createIntVar("upperbound", IntDomainVar.BOUNDS, 0,	cstr.getAmount());
+				IntDomainVar consumption = solver.createIntVar("consumption", IntDomainVar.BOUNDS,
+						0, 0);
+				IntDomainVar cstrAmount = solver.createIntVar("capacity", IntDomainVar.BOUNDS,
+						cstr.getAmount(), cstr.getAmount());
+				IntDomainVar upperbound = solver.createIntVar("upperbound", IntDomainVar.BOUNDS, 0,
+						cstr.getAmount());
 				IntDomainVar[] heights = new IntDomainVar[cstr.getInvolvedNodes().size()];
-				
-				try {
-				for (int idx : nodeIdx) {
 
-					UUID n = rp.getNode(idx);
-					NodeActionModel nodeAction = rp.getNodeAction(n);
-					
-					IntDomainVar onlineDuration = rp.makeDuration("onlineDuration(" + idx + "");
-					
-					IntDomainVar startTime = solver.createIntVar("online_Start("+n+")", IntDomainVar.BOUNDS, 0, nodeAction.getStart().getSup());
-					
-					if(map.getOfflineNodes().contains(n)) {
-						System.err.println(n + " start at 10");
-						nodeAction.getStart().setVal(10);
+					for (int idx : nodeIdx) {
+
+						UUID n = rp.getNode(idx);
+						NodeActionModel nodeAction = rp.getNodeAction(n);
+
+						IntDomainVar onlineDuration = rp.makeDuration("onlineDuration(" + idx + "");
+
+						if (map.getOfflineNodes().contains(n)) {
+							IntDomainVar startTime = nodeAction.getStart();
+							stateTasks.add(solver.createTaskVar("online_time(" + n + ")",
+									startTime, nodeAction.getHostingEnd(), onlineDuration));
+						} else {
+//							IntExp endTime =  solver.plus(nodeAction.getHostingEnd(), nodeAction.getDuration());
+							IntDomainVar endTime = solver.createIntVar("endtime", IntDomainVar.BOUNDS, 0, Integer.MAX_VALUE); 
+							solver.post(solver.eq(endTime, solver.plus(nodeAction.getHostingEnd(), nodeAction.getDuration())));
+							stateTasks.add(solver.createTaskVar("online_time(" + n + ")",
+									rp.getStart(), endTime, onlineDuration));
+
+						}
+
+						heights[idx] = solver.createIntVar("height(" + n +")", IntDomainVar.BOUNDS, 1, 1);
 					}
-					else {
-						nodeAction.getStart().setVal(5);
-						System.err.println(n + " start at 5");	
-					}
-					stateTasks.add(solver.createTaskVar("online_time(" + n + ")", startTime, 
-								nodeAction.getHostingEnd(), onlineDuration));	
-					
-					heights[idx] = solver.createIntegerConstant("height(" + n + ")", 1);
-					
-					//solver.createIntVar(ni +" isOnline", IntDomainVar.BOUNDS, 0, 1);
-					//BooleanChanneling bc = new BooleanChanneling(nodeAction.getState(), heights[idx], 1);
-					//solver.post(bc);
-				}
-					
-								
-				
-				Cumulative cumulative = new Cumulative(solver, "MaxOnline",
-						stateTasks.toArray(new TaskVar[stateTasks.size()]), 
-						heights, consumption,
-						cstrAmount, upperbound);
-				//solver.post(cumulative);
-				
-				} catch (ContradictionException e) {
-					e.printStackTrace();
-				}	
-				
+
+					Cumulative cumulative = new Cumulative(solver, "MaxOnline",
+							stateTasks.toArray(new TaskVar[stateTasks.size()]), heights,
+							consumption, cstrAmount, upperbound);
+					solver.post(cumulative);
 			}
-				
 		}
 
 		List<IntDomainVar> nodes_state = new ArrayList<IntDomainVar>(cstr.getInvolvedNodes().size());
@@ -116,7 +103,6 @@ public class CMaxOnlines implements ChocoSatConstraint {
 		for (UUID ni : cstr.getInvolvedNodes()) {
 			nodes_state.add(rp.getNodeAction(ni).getState());
 		}
-
 		IntExp sum_of_states = CPSolver
 				.sum(nodes_state.toArray(new IntDomainVar[nodes_state.size()]));
 		solver.post(solver.leq(sum_of_states, cstr.getAmount()));

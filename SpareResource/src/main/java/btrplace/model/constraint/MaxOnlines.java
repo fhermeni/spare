@@ -109,8 +109,7 @@ public class MaxOnlines extends SatConstraint {
 
 		MinSpareResources that = (MinSpareResources) o;
 
-		return qty == that.getAmount()
-				&& getInvolvedNodes().equals(that.getInvolvedNodes())
+		return qty == that.getAmount() && getInvolvedNodes().equals(that.getInvolvedNodes())
 				&& this.isContinuous() == that.isContinuous();
 	}
 
@@ -125,8 +124,8 @@ public class MaxOnlines extends SatConstraint {
 	@Override
 	public String toString() {
 		StringBuilder b = new StringBuilder();
-		b.append("maxOnlines(").append("nodes=").append(getInvolvedNodes())
-				.append(", amount=").append(qty);
+		b.append("maxOnlines(").append("nodes=").append(getInvolvedNodes()).append(", amount=")
+				.append(qty);
 
 		if (isContinuous()) {
 			b.append(", continuous");

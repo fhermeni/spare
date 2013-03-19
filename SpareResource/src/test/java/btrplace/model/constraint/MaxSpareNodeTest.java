@@ -17,9 +17,9 @@ import btrplace.model.view.ShareableResource;
 import btrplace.test.PremadeElements;
 
 public class MaxSpareNodeTest implements PremadeElements {
-  @Test
-  public void DiscreteMaxSpareNodeTest() {
-	  Mapping map = new DefaultMapping();
+	@Test
+	public void discreteMaxSpareNodeTest() {
+		Mapping map = new DefaultMapping();
 		map.addOnlineNode(n1);
 		map.addOnlineNode(n2);
 		map.addOnlineNode(n3);
@@ -48,8 +48,8 @@ public class MaxSpareNodeTest implements PremadeElements {
 		map.addSleepingVM(vm2, n1);
 		map.addSleepingVM(vm3, n1);
 		Assert.assertEquals(msn.isSatisfied(mo), Sat.SATISFIED);
-		
+
 		map.addSleepingVM(vm4, n3);
 		Assert.assertEquals(msn.isSatisfied(mo), Sat.UNSATISFIED);
-  }
+	}
 }

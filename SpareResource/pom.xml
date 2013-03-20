@@ -19,6 +19,10 @@
 			<id>btrp-snapshots</id>
 			<url>http://btrp.inria.fr/repos/snapshot-releases</url>
 		</repository>
+        <repository>
+            <id>choco.repos</id>
+            <url>http://www.emn.fr/z-info/choco-repo/mvn/repository/</url>
+        </repository>
 	</repositories>
 	<dependencies>
 		<dependency>
@@ -30,14 +34,18 @@
 		<dependency>
 			<groupId>btrplace</groupId>
 			<artifactId>solver-bundle</artifactId>
-			<version>0.26-SNAPSHOT</version>
+			<version>0.26</version>
 		</dependency>
-		<dependency>
+	<dependency>
    <groupId>btrplace</groupId>
    <artifactId>solver-testMaterial</artifactId>
    <version>0.24</version>
    </dependency>
-		
+        <dependency>
+            <groupId>choco</groupId>
+            <artifactId>choco-visu</artifactId>
+            <version>2.1.5</version>
+        </dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>

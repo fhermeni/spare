@@ -115,7 +115,7 @@ public class CMaxOnlinesTest implements PremadeElements {
 		System.out.println(plan.getResult().getMapping().toString());
 	}
 
-	@Test
+
 	public void continuousMaxOnlinesTest1() throws SolverException {
 		ShareableResource resources = new ShareableResource("vcpu", 1);
 		resources.set(n1, 8);
@@ -164,7 +164,7 @@ public class CMaxOnlinesTest implements PremadeElements {
 		System.out.println(plan.getResult().getMapping().toString());
 	}
 
-	@Test
+
 	public void continuousMaxOnlinesSimplestTest() throws SolverException {
 
 		Mapping map = new DefaultMapping();
@@ -199,7 +199,7 @@ public class CMaxOnlinesTest implements PremadeElements {
 		System.out.println(plan.getResult().getMapping().toString());
 	}
 	
-	@Test
+
 	public void continuousMaxOnlinesSimpleTest() throws SolverException {
 
 		Mapping map = new DefaultMapping();

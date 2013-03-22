@@ -18,14 +18,6 @@
 
 package btrplace.model.constraint;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
 import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
@@ -33,70 +25,77 @@ import btrplace.model.Model;
 import btrplace.model.SatConstraint.Sat;
 import btrplace.model.view.ShareableResource;
 import btrplace.test.PremadeElements;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Unit tests for {@link MinSpareResources}.
- * 
+ *
  * @author Tu Huynh Dang
  */
 
 public class MinSpareResourcesTest implements PremadeElements {
 
-	@Test
-	public void testMinSpareResources() {
-		Set<UUID> s = new HashSet<UUID>(Arrays.asList(n1, n2));
-		MinSpareResources c = new MinSpareResources(s, "ucpu", 3);
-		Assert.assertEquals(s, c.getInvolvedNodes());
-		Assert.assertEquals("ucpu", c.getResource());
-		Assert.assertEquals(3, c.getAmount());
-		Assert.assertTrue(c.getInvolvedVMs().isEmpty());
-		Assert.assertFalse(c.toString().contains("null"));
-		Assert.assertFalse(c.isContinuous());
-		Assert.assertTrue(c.setContinuous(true));
-		Assert.assertTrue(c.isContinuous());
+    @Test
+    public void testMinSpareResources() {
+        Set<UUID> s = new HashSet<UUID>(Arrays.asList(n1, n2));
+        MinSpareResources c = new MinSpareResources(s, "ucpu", 3);
+        Assert.assertEquals(s, c.getInvolvedNodes());
+        Assert.assertEquals("ucpu", c.getResource());
+        Assert.assertEquals(3, c.getAmount());
+        Assert.assertTrue(c.getInvolvedVMs().isEmpty());
+        Assert.assertFalse(c.toString().contains("null"));
+        Assert.assertFalse(c.isContinuous());
+        Assert.assertTrue(c.setContinuous(true));
+        Assert.assertTrue(c.isContinuous());
 
-		c = new MinSpareResources(s, "ucpu", 3, true);
-		Assert.assertTrue(c.isContinuous());
-	}
+        c = new MinSpareResources(s, "ucpu", 3, true);
+        Assert.assertTrue(c.isContinuous());
+    }
 
-	@Test
-	public void testIsSatisfiedModel() {
+    @Test
+    public void testIsSatisfiedModel() {
 
-	}
+    }
 
-	@Test
-	public void testDiscreteIsSatisfied() {
-		Mapping map = new DefaultMapping();
-		map.addOnlineNode(n1);
-		map.addOnlineNode(n2);
-		map.addOnlineNode(n3);
+    @Test
+    public void testDiscreteIsSatisfied() {
+        Mapping map = new DefaultMapping();
+        map.addOnlineNode(n1);
+        map.addOnlineNode(n2);
+        map.addOnlineNode(n3);
 
-		map.addRunningVM(vm1, n1);
-		map.addRunningVM(vm2, n1);
-		map.addRunningVM(vm3, n2);
-		map.addRunningVM(vm4, n3);
+        map.addRunningVM(vm1, n1);
+        map.addRunningVM(vm2, n1);
+        map.addRunningVM(vm3, n2);
+        map.addRunningVM(vm4, n3);
 
-		Model mo = new DefaultModel(map);
-		ShareableResource rc = new ShareableResource("cpu", 1);
+        Model mo = new DefaultModel(map);
+        ShareableResource rc = new ShareableResource("cpu", 1);
 
-		rc.set(vm2, 2);
-		rc.set(n1, 4);
-		rc.set(n2, 2);
-		rc.set(n3, 2);
-		mo.attach(rc);
-		Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3));
+        rc.set(vm2, 2);
+        rc.set(n1, 4);
+        rc.set(n2, 2);
+        rc.set(n3, 2);
+        mo.attach(rc);
+        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3));
 
-		MinSpareResources msr = new MinSpareResources(nodes, "cpu", 3);
+        MinSpareResources msr = new MinSpareResources(nodes, "cpu", 3);
 
-		Assert.assertEquals(msr.isSatisfied(mo), Sat.SATISFIED);
-		rc.set(vm1, 3);
-		Assert.assertEquals(msr.isSatisfied(mo), Sat.UNSATISFIED);
+        Assert.assertEquals(msr.isSatisfied(mo), Sat.SATISFIED);
+        rc.set(vm1, 3);
+        Assert.assertEquals(msr.isSatisfied(mo), Sat.UNSATISFIED);
 
-		map.addSleepingVM(vm2, n1);
-		map.addSleepingVM(vm3, n1);
+        map.addSleepingVM(vm2, n1);
+        map.addSleepingVM(vm3, n1);
 
-		Assert.assertEquals(msr.isSatisfied(mo), Sat.SATISFIED);
+        Assert.assertEquals(msr.isSatisfied(mo), Sat.SATISFIED);
 
-	}
+    }
 
 }

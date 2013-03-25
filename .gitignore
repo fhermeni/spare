@@ -1,0 +1,9 @@
+/testng.xml
+*.class
+*.jar
+.idea/
+.classpath
+.project
+settings/
+target/
+.idea/

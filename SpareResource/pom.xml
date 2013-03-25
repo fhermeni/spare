@@ -26,15 +26,9 @@
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>btrplace</groupId>
             <artifactId>solver-bundle</artifactId>
-            <version>0.28-SNAPSHOT</version>
+            <version>0.27</version>
         </dependency>
         <dependency>
             <groupId>btrplace</groupId>

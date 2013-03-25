@@ -4,11 +4,13 @@ import btrplace.model.*;
 import btrplace.model.SatConstraint.Sat;
 import btrplace.model.constraint.MaxSpareResources;
 import btrplace.model.constraint.Overbook;
+import btrplace.model.constraint.Sleeping;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
+import btrplace.solver.choco.MappingBuilder;
 import btrplace.test.PremadeElements;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -165,19 +167,12 @@ public class CMaxSpareResourcesTest implements PremadeElements {
     @Test
     public void testCMaxSpareResourcesDiscrete4() throws SolverException {
 
-        Mapping m = new DefaultMapping();
+        Mapping m = new MappingBuilder().on(n1, n2, n3)
+                .run(n1, vm1, vm3)
+                .run(n2, vm2, vm4)
+                .run(n3, vm5).build();
 
-        m.addOnlineNode(n1);
-        m.addOnlineNode(n2);
-        m.addOnlineNode(n3);
-
-        m.addRunningVM(vm1, n1);
-        m.addRunningVM(vm2, n2);
-        m.addRunningVM(vm3, n1);
-        m.addRunningVM(vm4, n2);
-        m.addRunningVM(vm5, n3);
-
-        btrplace.model.view.ShareableResource rc = new ShareableResource("vcpu", 8);
+        btrplace.model.view.ShareableResource rc = new ShareableResource("vcpu", 4);
         rc.set(vm1, 1);
         rc.set(vm2, 1);
         rc.set(vm3, 1);
@@ -199,6 +194,49 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
 
+        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        System.out.println(plan.getOrigin().getMapping().toString());
+        System.out.println(plan.toString());
+        System.out.println(plan.getResult().getMapping().toString());
+    }
+
+    @Test
+    public void testCMaxSpareResourcesContinuous() throws SolverException {
+
+        Mapping m = new MappingBuilder().on(n1, n2, n3)
+                .run(n1, vm1, vm2)
+                .run(n2, vm3, vm4)
+                .run(n3, vm5).build();
+
+        ShareableResource rc = new ShareableResource("vcpu", 1);
+        rc.set(n1, 4);
+        rc.set(n2, 4);
+        rc.set(n3, 4);
+        rc.set(vm2, 2);
+        rc.set(vm4, 2);
+        rc.set(vm5, 2);
+
+        Model mo = new DefaultModel(m);
+        mo.attach(rc);
+        List<SatConstraint> l = new ArrayList<SatConstraint>();
+
+        Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2));
+
+        Sleeping sleeping = new Sleeping(new HashSet<UUID>(Arrays.asList(vm3)));
+        MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 2);
+        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
+        c.setContinuous(true);
+        l.add(sleeping);
+        l.add(c);
+        l.add(oc);
+
+        ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
+//        cra.setVerbosity(2);
+        cra.setMaxEnd(20);
+        ReconfigurationPlan plan = cra.solve(mo, l);
+
+        Assert.assertNotNull(plan);
         Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
         System.out.println(plan.getOrigin().getMapping().toString());
         System.out.println(plan.toString());

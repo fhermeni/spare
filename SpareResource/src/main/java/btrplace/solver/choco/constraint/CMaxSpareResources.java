@@ -1,6 +1,5 @@
 package btrplace.solver.choco.constraint;
 
-import btrplace.model.Mapping;
 import btrplace.model.Model;
 import btrplace.model.SatConstraint;
 import btrplace.model.constraint.MaxSpareResources;
@@ -13,7 +12,6 @@ import choco.cp.solver.constraints.global.scheduling.cumulative.Cumulative;
 import choco.kernel.solver.constraints.integer.IntExp;
 import choco.kernel.solver.variables.integer.IntDomainVar;
 import choco.kernel.solver.variables.scheduling.TaskVar;
-import gnu.trove.list.array.TIntArrayList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,64 +48,6 @@ public class CMaxSpareResources implements ChocoSatConstraint {
         }
 
         CPSolver solver = rp.getSolver();
-        if (cstr.isContinuous()) {
-            // The constraint must be already satisfied
-            if (!cstr.isSatisfied(rp.getSourceModel()).equals(SatConstraint.Sat.SATISFIED)) {
-                rp.getLogger()
-                        .error("The constraint '{}' must be already satisfied to provide a continuous restriction",
-                                cstr);
-                return false;
-            } else {
-                Mapping mapping = rp.getSourceModel().getMapping();
-                int[] alias = new int[cstr.getInvolvedNodes().size()];
-                int i = 0;
-                int capas = 0;
-                for (UUID n : cstr.getInvolvedNodes()) {
-                    alias[i++] = rp.getNode(n);
-                    if (mapping.getOnlineNodes().contains(n)) {
-                        capas += rcm.getSourceResource().get(n);
-                    }
-                }
-
-                TIntArrayList cUse = new TIntArrayList();
-                List<IntDomainVar> dSlices = new ArrayList<IntDomainVar>();
-                List<IntDomainVar> heights = new ArrayList<IntDomainVar>();
-                List<TaskVar> taskVars = new ArrayList<TaskVar>();
-
-                IntDomainVar uppBound = rp.getEnd();
-                for (UUID vmId : rp.getVMs()) {
-                    VMActionModel a = rp.getVMAction(vmId);
-                    Slice c = a.getCSlice();
-                    Slice d = a.getDSlice();
-                    if (c != null) {
-                        int val = rcm.getSourceResource().get(vmId);
-                        cUse.add(val);
-                    }
-                    if (d != null) {
-                        dSlices.add(rcm.getVMsAllocation(rp.getVM(vmId)));
-                        heights.add(rcm.getVMsAllocation(rp.getVM(vmId)));
-                        taskVars.add(solver.createTaskVar("dTask_" + vmId, d.getStart(), d.getEnd(), d.getDuration()));
-                    }
-                }
-                rp.getAliasedCumulativesBuilder().add(capas, cUse.toArray(),
-                        dSlices.toArray(new IntDomainVar[dSlices.size()]), alias);
-
-                int csum = 0;
-                for (UUID vmId : rp.getVMs()) {
-                    int currentNode = rp.getCurrentVMLocation(rp.getVM(vmId));
-                    if (cstr.getInvolvedNodes().contains(rp.getNode(currentNode))) {
-                        csum += cUse.get(rp.getVM(vmId));
-                    }
-                }
-                IntDomainVar capacity = solver.makeConstantIntVar(capas - csum);
-                IntDomainVar consumption = solver.createBoundIntVar("consumption", capas - cstr.getAmount(), capas);
-
-                Cumulative cumulative = new Cumulative(solver, "Cumulative", taskVars.toArray(new TaskVar[taskVars.size()]),
-                        heights.toArray(new IntDomainVar[heights.size()]), consumption, capacity, uppBound);
-                solver.post(cumulative);
-
-            }
-        }
         // get future state of involved nodes
         List<IntDomainVar> nodes_state = new ArrayList<IntDomainVar>(cstr.getInvolvedNodes().size());
         for (UUID ni : cstr.getInvolvedNodes()) {
@@ -124,20 +64,58 @@ public class CMaxSpareResources implements ChocoSatConstraint {
             vs.add(rcm.getVirtualUsage()[rp.getNode(u)]);
             caps[i++] = rcm.getSourceResource().get(u);
         }
-
-        CPSolver s = solver;
-
         // sum all capacity of involved nodes
-        IntExp sumcap = s.scalar(caps, nodes_state.toArray(new IntDomainVar[nodes_state.size()]));
+        IntExp capacity_discrete = solver.scalar(caps, nodes_state.toArray(new IntDomainVar[nodes_state.size()]));
 
         // sum all resource consumption of involved nodes
-        IntExp sumcon = CPSolver.sum(vs.toArray(new IntDomainVar[vs.size()]));
+        IntExp total_consumption = CPSolver.sum(vs.toArray(new IntDomainVar[vs.size()]));
 
-        // number of spare resources is the difference between capacity and
-        // usage
-        IntExp spare = CPSolver.minus(sumcap, sumcon);
 
-        s.post(s.leq(spare, cstr.getAmount()));
+        //Continuous restriction: The constraint must be already satisfied
+        if (cstr.isContinuous()) if (!cstr.isSatisfied(rp.getSourceModel()).equals(SatConstraint.Sat.SATISFIED)) {
+            rp.getLogger()
+                    .error("The constraint '{}' must be already satisfied to provide a continuous restriction",
+                            cstr);
+            return false;
+        } else {
+            List<TaskVar> taskVars = new ArrayList<TaskVar>();
+            List<IntDomainVar> heights = new ArrayList<IntDomainVar>();
+//            IntDomainVar capa_cont = solver.createBoundIntVar("capacity", 0, Integer.MAX_VALUE);
+//            solver.post(solver.eq(capa_cont, capacity_discrete));
+            int sum_of_caps = 0;
+            for (int j : caps) sum_of_caps += j;
+            IntDomainVar capa_cont = solver.makeConstantIntVar(sum_of_caps);
+            IntDomainVar min_consumption = solver.createBoundIntVar("min_consumption", 0, Integer.MAX_VALUE);
+            solver.post(solver.eq(min_consumption, solver.minus(capa_cont, cstr.getAmount())));
+
+            for (UUID vmId : rp.getVMs()) {
+                VMActionModel a = rp.getVMAction(vmId);
+                Slice c = a.getCSlice();
+                Slice d = a.getDSlice();
+                if (c != null) {
+                    heights.add(rcm.getVMsAllocation(rp.getVM(vmId)));   // It manipulates the ShareResource as well
+                    taskVars.add(solver.createTaskVar("cTask_" + vmId, c.getStart(), c.getEnd(), c.getDuration()));
+                }
+                if (d != null) {
+                    heights.add(rcm.getVMsAllocation(rp.getVM(vmId))); // It manipulates the ShareResource as well
+                    taskVars.add(solver.createTaskVar("dTask_" + vmId, d.getStart(), d.getEnd(), d.getDuration()));
+                }
+            }
+
+          /*  for (UUID ni : cstr.getInvolvedNodes()) {
+                NodeActionModel na = rp.getNodeAction(ni);
+                heights.add(solver.makeConstantIntVar(caps[rp.getNode(ni)]));
+                taskVars.add(solver.createTaskVar("NodeAct_" + ni, na.getStart(), na.getEnd(), na.getDuration()));
+            }*/
+
+            Cumulative maxsr = new Cumulative(solver, "maxsr", taskVars.toArray(new TaskVar[taskVars.size()]),
+                    heights.toArray(new IntDomainVar[heights.size()]), min_consumption, capa_cont, rp.getEnd());
+            solver.post(maxsr);
+        }
+
+        // Discrete restriction: number of spare resources is the difference between capacity and usage
+        IntExp spare = CPSolver.minus(capacity_discrete, total_consumption);
+        solver.post(solver.leq(spare, cstr.getAmount()));
 
         return true;
     }

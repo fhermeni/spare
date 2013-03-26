@@ -9,6 +9,10 @@ import btrplace.model.view.ShareableResource;
 import btrplace.plan.DefaultReconfigurationPlan;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.MigrateVM;
+import btrplace.plan.event.ShutdownNode;
+import btrplace.plan.event.ShutdownVM;
+import btrplace.solver.SolverException;
+import btrplace.solver.choco.MappingBuilder;
 import btrplace.test.PremadeElements;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -122,4 +126,33 @@ public class MaxSpareResourcesTest implements PremadeElements {
         Assert.assertEquals(oc.isSatisfied(plan), Sat.SATISFIED);
 
     }
+
+    @Test
+    public void testMaxSpareResourcesContinuousSimple() throws SolverException {
+
+        Mapping m = new MappingBuilder().on(n1, n2)
+                .run(n1, vm1, vm3).run(n2, vm2).build();
+
+        ShareableResource rc = new ShareableResource("vcpu", 1);
+        rc.set(n1, 3);
+        rc.set(n2, 2);
+        Model mo = new DefaultModel(m);
+        mo.attach(rc);
+        MaxSpareResources msr = new MaxSpareResources(m.getAllNodes(), "vcpu", 2, true);
+        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
+
+        ReconfigurationPlan plan = new DefaultReconfigurationPlan(mo);
+        Assert.assertEquals(msr.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertEquals(oc.isSatisfied(plan), Sat.SATISFIED);
+
+        plan.add(new ShutdownNode(n2, 2, 4));
+        Assert.assertEquals(msr.isSatisfied(plan), Sat.UNSATISFIED);
+
+        plan.add(new MigrateVM(vm2, n2, n1, 0, 2));
+        plan.add(new ShutdownVM(vm1, n1, 4, 5));
+        System.out.println(plan);
+        Assert.assertEquals(msr.isSatisfied(plan), Sat.SATISFIED);
+
+    }
+
 }

@@ -2,15 +2,18 @@ package btrplace.solver.choco.constraint;
 
 import btrplace.model.*;
 import btrplace.model.SatConstraint.Sat;
+import btrplace.model.constraint.Killed;
 import btrplace.model.constraint.MaxSpareResources;
 import btrplace.model.constraint.Overbook;
 import btrplace.model.constraint.Sleeping;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
+import btrplace.plan.event.ShutdownNode;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
+import btrplace.solver.choco.durationEvaluator.ConstantDuration;
 import btrplace.test.PremadeElements;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -201,6 +204,44 @@ public class CMaxSpareResourcesTest implements PremadeElements {
     }
 
     @Test
+    public void testCMaxSpareResourcesContinuousSimple() throws SolverException {
+
+        Mapping m = new MappingBuilder().on(n1, n2)
+                .run(n1, vm1, vm3).run(n2, vm2).build();
+
+        ShareableResource rc = new ShareableResource("vcpu", 1);
+        rc.set(n1, 3);
+        rc.set(n2, 2);
+
+        Model mo = new DefaultModel(m);
+        mo.attach(rc);
+        List<SatConstraint> l = new ArrayList<SatConstraint>();
+
+        Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2));
+
+        Killed cKilled = new Killed(new HashSet<UUID>(Arrays.asList(vm1)));
+        MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 2);
+        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
+        c.setContinuous(true);
+        l.add(cKilled);
+        l.add(c);
+        l.add(oc);
+
+        ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
+        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(2));
+        cra.setVerbosity(2);
+        ReconfigurationPlan plan = cra.solve(mo, l);
+
+        Assert.assertNotNull(plan);
+        Assert.assertEquals(rc.get(vm3), 1);
+        System.out.println(plan.getOrigin().getMapping().toString());
+        System.out.println(plan.toString());
+        System.out.println(plan.getResult().getMapping().toString());
+        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+    }
+
+    @Test
     public void testCMaxSpareResourcesContinuous() throws SolverException {
 
         Mapping m = new MappingBuilder().on(n1, n2, n3)
@@ -232,7 +273,7 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
-//        cra.setVerbosity(2);
+        cra.setVerbosity(2);
         cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(mo, l);
 

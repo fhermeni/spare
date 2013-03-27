@@ -6,10 +6,7 @@ import btrplace.model.SatConstraint;
 import btrplace.plan.Action;
 import btrplace.plan.ReconfigurationPlan;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * A constraint to force a set of nodes to reserve a maximum number of spare
@@ -89,15 +86,54 @@ public class MaxSpareNode extends SatConstraint {
 
     @Override
     public Sat isSatisfied(ReconfigurationPlan p) {
-        Model mo = p.getOrigin();
-        if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-            return Sat.UNSATISFIED;
+        Model mo = p.getOrigin().clone();
+
+        //---------- find concurrent actions ------------
+        HashSet<Integer> skipIdx = new HashSet<Integer>();
+        Map<Integer, ArrayList<Integer>> concurrent_actions = new HashMap<Integer, ArrayList<Integer>>();
+        int idx = 0;
+        Action[] actions = new Action[p.getSize()];
+        for (Action ac : p) {
+            actions[idx++] = ac;
         }
-        mo = p.getOrigin().clone();
-        for (Action a : p) {
+
+        for (int i = 0; i < idx - 1; i++) {
+            if (skipIdx.contains(i)) continue;
+
+            ArrayList<Integer> alist = new ArrayList<Integer>();
+            for (int j = i + 1; j < idx; j++) {
+                if (actions[i].getStart() == actions[j].getStart()) {
+                    alist.add(j);
+                }
+            }
+            if (!alist.isEmpty()) {
+                concurrent_actions.put(i, alist);
+                skipIdx.addAll(alist);
+            }
+        }
+        //---------- find concurrent actions ------------
+
+
+        for (int i = 0; i < idx; i++) {
+            if (skipIdx.contains(i)) continue;
+
+            Action a = actions[i];
             if (!a.apply(mo)) {
                 return Sat.UNSATISFIED;
             }
+            // execute actions which are concurrent with action a;
+            if (concurrent_actions.containsKey(i)) {
+                ArrayList<Integer> calist = concurrent_actions.get(i);
+
+                for (int k : calist) {
+                    Action b = actions[k];
+                    if (!b.apply(mo)) {
+                        return Sat.UNSATISFIED;
+                    }
+                }
+
+            }
+
             if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
                 return Sat.UNSATISFIED;
             }

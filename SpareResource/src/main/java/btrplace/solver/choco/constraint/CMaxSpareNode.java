@@ -34,7 +34,7 @@ public class CMaxSpareNode implements ChocoSatConstraint {
 
     @Override
     public boolean inject(ReconfigurationProblem rp) throws SolverException {
-
+        CPSolver solver = rp.getSolver();
         if (cstr.isContinuous()) {
             // The constraint must be already satisfied
             if (!cstr.isSatisfied(rp.getSourceModel()).equals(SatConstraint.Sat.SATISFIED)) {
@@ -46,18 +46,18 @@ public class CMaxSpareNode implements ChocoSatConstraint {
 
             }
         }
-
+        // Get number of VMs hosted on each node
         IntDomainVar[] nodes_state = rp.getNbRunningVMs();
+
+        // Filter the involved nodes
         IntDomainVar[] nodeVM = new IntDomainVar[cstr.getInvolvedNodes().size()];
-
         int i = 0;
-
         for (UUID n : cstr.getInvolvedNodes()) {
             nodeVM[i++] = nodes_state[rp.getNode(n)];
         }
-        CPSolver solver = rp.getSolver();
-        IntDomainVar idle = solver.createBoundIntVar("Nidles", 0, cstr.getInvolvedNodes().size());
 
+        // idle is equals the number of nodeVM with value 0. idle should be less than Amount for MaxSN
+        IntDomainVar idle = solver.createBoundIntVar("Nidles", 0, cstr.getInvolvedNodes().size());
         solver.post(solver.occurence(nodeVM, idle, 0));
         solver.post(solver.leq(idle, cstr.getAmount()));
 

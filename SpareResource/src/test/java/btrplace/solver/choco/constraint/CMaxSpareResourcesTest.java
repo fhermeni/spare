@@ -5,7 +5,6 @@ import btrplace.model.SatConstraint.Sat;
 import btrplace.model.constraint.Killed;
 import btrplace.model.constraint.MaxSpareResources;
 import btrplace.model.constraint.Overbook;
-import btrplace.model.constraint.Sleeping;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.ShutdownNode;
@@ -263,11 +262,11 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2));
 
-        Sleeping sleeping = new Sleeping(new HashSet<UUID>(Arrays.asList(vm3)));
+        Killed cKilled = new Killed(new HashSet<UUID>(Arrays.asList(vm1)));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 2);
         Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
         c.setContinuous(true);
-        l.add(sleeping);
+        l.add(cKilled);
         l.add(c);
         l.add(oc);
 

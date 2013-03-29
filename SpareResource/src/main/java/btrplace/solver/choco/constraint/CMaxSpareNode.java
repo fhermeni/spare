@@ -7,6 +7,7 @@ import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoSatConstraint;
 import btrplace.solver.choco.ChocoSatConstraintBuilder;
 import btrplace.solver.choco.ReconfigurationProblem;
+import btrplace.solver.choco.VMActionModel;
 import choco.cp.solver.CPSolver;
 import choco.kernel.solver.variables.integer.IntDomainVar;
 
@@ -35,6 +36,7 @@ public class CMaxSpareNode implements ChocoSatConstraint {
     @Override
     public boolean inject(ReconfigurationProblem rp) throws SolverException {
         CPSolver solver = rp.getSolver();
+        int size = cstr.getInvolvedNodes().size();
         if (cstr.isContinuous()) {
             // The constraint must be already satisfied
             if (!cstr.isSatisfied(rp.getSourceModel()).equals(SatConstraint.Sat.SATISFIED)) {
@@ -42,22 +44,38 @@ public class CMaxSpareNode implements ChocoSatConstraint {
                         .error("The constraint '{}' must be already satisfied to provide a continuous restriction",
                                 cstr);
                 return false;
-            } else {
+            } else {            // Start of Continuous Model
 
-            }
+                // The start moment of node being idle
+                IntDomainVar[] idle_starts = new IntDomainVar[size];
+
+                // The end moment of node being idle
+                IntDomainVar[] idle_ends = new IntDomainVar[size];
+
+                VMActionModel[] vmActions = rp.getVMActions();
+
+                for (UUID n : cstr.getInvolvedNodes()) {
+                    int i = rp.getNode(n);
+                    IdleNode idleNode = new IdleNode(rp, n);
+                    idle_starts[i] = idleNode.getIdle_start();
+                    idle_ends[i] = idleNode.getIdle_end();
+                }
+
+
+            }   // END OF CONTINUOUS
         }
         // Get number of VMs hosted on each node
         IntDomainVar[] nodes_state = rp.getNbRunningVMs();
 
         // Filter the involved nodes
-        IntDomainVar[] nodeVM = new IntDomainVar[cstr.getInvolvedNodes().size()];
+        IntDomainVar[] nodeVM = new IntDomainVar[size];
         int i = 0;
         for (UUID n : cstr.getInvolvedNodes()) {
             nodeVM[i++] = nodes_state[rp.getNode(n)];
         }
 
         // idle is equals the number of nodeVM with value 0. idle should be less than Amount for MaxSN
-        IntDomainVar idle = solver.createBoundIntVar("Nidles", 0, cstr.getInvolvedNodes().size());
+        IntDomainVar idle = solver.createBoundIntVar("Nidles", 0, size);
         solver.post(solver.occurence(nodeVM, idle, 0));
         solver.post(solver.leq(idle, cstr.getAmount()));
 

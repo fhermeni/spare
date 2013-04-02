@@ -102,7 +102,7 @@ public class MaxSpareNode extends SatConstraint {
 
             ArrayList<Integer> alist = new ArrayList<Integer>();
             for (int j = i + 1; j < idx; j++) {
-                if (actions[i].getStart() == actions[j].getStart()) {
+                if ((actions[i].getStart() == actions[j].getStart()) || (actions[i].getEnd() > actions[j].getStart())) {
                     alist.add(j);
                 }
             }

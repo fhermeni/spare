@@ -5,14 +5,15 @@ import btrplace.solver.choco.ActionModelUtils;
 import btrplace.solver.choco.ReconfigurationProblem;
 import btrplace.solver.choco.Slice;
 import btrplace.solver.choco.VMActionModel;
-import btrplace.solver.choco.chocoUtil.ChocoUtils;
 import choco.cp.solver.CPSolver;
-import choco.cp.solver.constraints.integer.bool.BooleanFactory;
+import choco.cp.solver.constraints.integer.MaxOfAList;
+import choco.cp.solver.constraints.integer.MinOfAList;
 import choco.cp.solver.constraints.integer.channeling.BooleanChanneling;
-import choco.cp.solver.constraints.reified.ReifiedFactory;
-import choco.kernel.solver.constraints.AbstractSConstraint;
+import choco.cp.solver.constraints.reified.IfThenElse;
+import choco.kernel.solver.constraints.integer.AbstractIntSConstraint;
 import choco.kernel.solver.variables.integer.IntDomainVar;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -35,37 +36,46 @@ public class IdleNode {
 
         int nodeIdx = rp.getNode(n);
         CPSolver solver = rp.getSolver();
-        idle_start = solver.createBoundIntVar("idleS", 0, Integer.MAX_VALUE);
-        idle_end = solver.createBoundIntVar("idleE", 0, Integer.MAX_VALUE);
+        idle_start = solver.createBoundIntVar("idleS(" + n.getLeastSignificantBits() + ")", 0, Integer.MAX_VALUE);
+        idle_end = solver.createBoundIntVar("idleE(" + n.getLeastSignificantBits() + ")", 0, Integer.MAX_VALUE);
         VMActionModel[] vmActions = rp.getVMActions();
 
         Set<UUID> vms = rp.getSourceModel().getMapping().getRunningVMs(n);
-
+        List<IntDomainVar> cStarts = new ArrayList<IntDomainVar>();
+        List<IntDomainVar> dEnds = new ArrayList<IntDomainVar>();
+        cStarts.add(0, idle_start);
         if (!vms.isEmpty()) {
             for (UUID vm : vms) {
                 VMActionModel vma = rp.getVMAction(vm);
                 Slice c = vma.getCSlice();
-                ChocoUtils.postImplies(solver, solver.lt(idle_start, c.getEnd()), solver.eq(idle_start, c.getEnd()));
+                cStarts.add(c.getEnd());
             }
+        } else {
+            cStarts.add(solver.createIntegerConstant("NoCSlice", 0));
         }
+        IntDomainVar[] cArray = cStarts.toArray(new IntDomainVar[cStarts.size()]);
+
+        // Idle start is equals the maximum end of all cSlices
+        solver.post(new MaxOfAList(solver.getEnvironment(), cArray));
+
 
         List<Slice> dslices = ActionModelUtils.getDSlices(vmActions);
+        dEnds.add(0, idle_end);
         for (Slice d : dslices) {
             // Check if dSlice locate on this node
-            IntDomainVar eqH = solver.createBooleanVar("eqH(" + d.getSubject() + ")");
+            IntDomainVar eqH = solver.createBooleanVar("eqH(" + d.getSubject().getLeastSignificantBits() + "," + n.getLeastSignificantBits() + ")");
+            IntDomainVar sD = solver.createBoundIntVar("dSt(" + d.getSubject().getLeastSignificantBits() + ")", 0, 3600);
             solver.post(new BooleanChanneling(eqH, d.getHoster(), nodeIdx));
 
-            // Check if the idle_time is greater than the starting of dSlice on this host
-            IntDomainVar gt = solver.createBooleanVar("gtS(" + d.getSubject() + ")");
-            ReifiedFactory.builder(gt, solver.gt(idle_end, d.getStart()), solver);
-            AbstractSConstraint<IntDomainVar> and = BooleanFactory.and(eqH, gt);
+            // If dslice lies on node n, then temporary variable sD equals d.Start. Otherwise, it is the end of RP
+            solver.post(new IfThenElse(eqH, (AbstractIntSConstraint) solver.eq(sD, d.getStart()),
+                    (AbstractIntSConstraint) solver.eq(sD, rp.getEnd())));
 
-            // If both conditions above are true, then set idle_end to the Min dslice Start
-            ChocoUtils.postImplies(solver, and, solver.eq(idle_end, d.getStart()));
-            System.out.println(solver.pretty());
-
+            dEnds.add(sD);
         }
 
+        // Idle end is min of start time of all dSlices
+        solver.post(new MinOfAList(solver.getEnvironment(), dEnds.toArray(new IntDomainVar[dEnds.size()])));
         solver.post(solver.geq(idle_end, idle_start));
     }
 

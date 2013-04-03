@@ -25,19 +25,21 @@ import java.util.UUID;
  * Time: 3:52 PM
  * To change this template use File | Settings | File Templates.
  */
-public class IdleNode {
+public class Idle {
 
     // The start moment of node being idle
     private IntDomainVar idle_start;
     // The end moment of node being idle
     private IntDomainVar idle_end;
 
-    public IdleNode(ReconfigurationProblem rp, UUID n) throws SolverException {
+    final int MAX_TIME = 3600;
+
+    public Idle(ReconfigurationProblem rp, UUID n) throws SolverException {
 
         int nodeIdx = rp.getNode(n);
         CPSolver solver = rp.getSolver();
-        idle_start = solver.createBoundIntVar("idleS(" + n.getLeastSignificantBits() + ")", 0, Integer.MAX_VALUE);
-        idle_end = solver.createBoundIntVar("idleE(" + n.getLeastSignificantBits() + ")", 0, Integer.MAX_VALUE);
+        idle_start = solver.createBoundIntVar("IS(" + n + ")", 0, MAX_TIME);
+        idle_end = solver.createBoundIntVar("IE(" + n + ")", 0, MAX_TIME);
         VMActionModel[] vmActions = rp.getVMActions();
 
         Set<UUID> vms = rp.getSourceModel().getMapping().getRunningVMs(n);
@@ -51,7 +53,7 @@ public class IdleNode {
                 cStarts.add(c.getEnd());
             }
         } else {
-            cStarts.add(solver.createIntegerConstant("NoCSlice", 0));
+            cStarts.add(solver.makeConstantIntVar(0));
         }
         IntDomainVar[] cArray = cStarts.toArray(new IntDomainVar[cStarts.size()]);
 
@@ -63,8 +65,8 @@ public class IdleNode {
         dEnds.add(0, idle_end);
         for (Slice d : dslices) {
             // Check if dSlice locate on this node
-            IntDomainVar eqH = solver.createBooleanVar("eqH(" + d.getSubject().getLeastSignificantBits() + "," + n.getLeastSignificantBits() + ")");
-            IntDomainVar sD = solver.createBoundIntVar("dSt(" + d.getSubject().getLeastSignificantBits() + ")", 0, 3600);
+            IntDomainVar eqH = solver.createBooleanVar("eqH(VM" + d.getSubject() + ",N" + n + ")");
+            IntDomainVar sD = solver.createBoundIntVar("dSt(VM" + d.getSubject() + ")", 0, MAX_TIME);
             solver.post(new BooleanChanneling(eqH, d.getHoster(), nodeIdx));
 
             // If dslice lies on node n, then temporary variable sD equals d.Start. Otherwise, it is the end of RP
@@ -76,22 +78,22 @@ public class IdleNode {
 
         // Idle end is min of start time of all dSlices
         solver.post(new MinOfAList(solver.getEnvironment(), dEnds.toArray(new IntDomainVar[dEnds.size()])));
-        solver.post(solver.geq(idle_end, idle_start));
+        //solver.post(solver.geq(idle_end, idle_start));
     }
 
-    public IntDomainVar getIdle_end() {
+    public IntDomainVar getEnd() {
         return idle_end;
     }
 
-    public void setIdle_end(IntDomainVar idle_end) {
+    public void setEnd(IntDomainVar idle_end) {
         this.idle_end = idle_end;
     }
 
-    public IntDomainVar getIdle_start() {
+    public IntDomainVar getStart() {
         return idle_start;
     }
 
-    public void setIdle_start(IntDomainVar idle_start) {
+    public void setStart(IntDomainVar idle_start) {
         this.idle_start = idle_start;
     }
 }

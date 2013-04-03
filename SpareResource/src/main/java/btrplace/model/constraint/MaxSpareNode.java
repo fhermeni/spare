@@ -88,6 +88,7 @@ public class MaxSpareNode extends SatConstraint {
     public Sat isSatisfied(ReconfigurationPlan p) {
         Model mo = p.getOrigin().clone();
 
+
         //---------- find concurrent actions ------------
         HashSet<Integer> skipIdx = new HashSet<Integer>();
         Map<Integer, ArrayList<Integer>> concurrent_actions = new HashMap<Integer, ArrayList<Integer>>();

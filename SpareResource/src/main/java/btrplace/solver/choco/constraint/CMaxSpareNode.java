@@ -103,9 +103,19 @@ public class CMaxSpareNode implements ChocoSatConstraint {
 
         // Filter the involved nodes
         IntDomainVar[] vmsOnInvolvedNodes = new IntDomainVar[NUMBER_OF_TASK];
+        IntDomainVar[] busy = new IntDomainVar[NUMBER_OF_TASK];
+
         int i = 0;
+        int maxVMs = rp.getSourceModel().getMapping().getAllVMs().size();
         for (UUID n : cstr.getInvolvedNodes()) {
-            vmsOnInvolvedNodes[i++] = VMsOnAllNodes[rp.getNode(n)];
+            vmsOnInvolvedNodes[i] = solver.createBoundIntVar("nVMs", 0, maxVMs);
+            IntDomainVar state = rp.getNodeAction(n).getState();
+            IntDomainVar[] c = new IntDomainVar[]{solver.makeConstantIntVar(-1), VMsOnAllNodes[rp.getNode(n)],
+                    state, vmsOnInvolvedNodes[i]};
+            solver.post(new ElementV(c, 0, solver.getEnvironment()));
+            busy[i] = solver.createBooleanVar("busy" + n);
+            //postIfOnlyIf(solver, busy[i], solver.geq(vmsOnInvolvedNodes[i], 1));
+            i++;
         }
 
         // idle is equals the number of vmsOnInvolvedNodes with value 0. idle should be less than Amount for MaxSN
@@ -113,6 +123,15 @@ public class CMaxSpareNode implements ChocoSatConstraint {
         solver.post(solver.occurence(vmsOnInvolvedNodes, idle, 0));
         solver.post(solver.leq(idle, cstr.getAmount()));
 
+       /* IntDomainVar[] states = new IntDomainVar[NUMBER_OF_TASK];
+        int j=0;
+        for (UUID n : cstr.getInvolvedNodes()) {
+            states[j++] = rp.getNodeAction(n).getState();
+        }
+        IntExp sumStates = (solver.sum(states));
+        IntExp sumIB = solver.plus(solver.sum(busy), idle);
+        solver.post(solver.eq(sumStates, sumIB));
+        System.out.println(rp.getSolver().pretty());*/
         return true;
     }
 

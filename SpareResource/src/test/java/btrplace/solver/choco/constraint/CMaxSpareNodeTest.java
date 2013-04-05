@@ -52,6 +52,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
+        cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());
@@ -194,44 +195,6 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test
-    public void discreteMaxSpareNodeTest6() throws SolverException {
-        ShareableResource resources = new ShareableResource("vcpu", 1);
-        resources.set(n1, 4);
-        resources.set(n2, 8);
-        resources.set(n3, 2);
-        resources.set(vm4, 2);
-
-        Mapping map = new MappingBuilder().on(n1, n2, n3).off(n4, n5)
-                .run(n1, vm5, vm6)
-                .run(n2, vm1, vm2).build();
-
-
-        Model model = new DefaultModel(map);
-        model.attach(resources);
-
-        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3, n4, n5));
-        Online online = new Online(new HashSet<UUID>(Arrays.asList(n4, n5)));
-        MaxSpareNode msn = new MaxSpareNode(nodes, 0);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
-        List<SatConstraint> constraints = new ArrayList<SatConstraint>();
-        constraints.add(msn);
-        constraints.add(online);
-        constraints.add(overbook);
-
-        ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
-        cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
-        cra.repair(false);
-        cra.setVerbosity(2);
-        ReconfigurationPlan plan = cra.solve(model, constraints);
-
-        Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
-    }
-
-
     public void testPlanwithConcurrentActions() {
         Mapping map = new MappingBuilder().on(n1, n2).off(n3)
                 .run(n1, vm1, vm2)
@@ -259,6 +222,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(migrateVM.getEnd(), 4);
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
     }
+
 
     @Test
     public void testMaxSNContinuousSimplest() throws SolverException {
@@ -330,6 +294,43 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
         System.out.println(plan);
         System.out.println(plan.getResult());
+    }
+
+    @Test
+    public void discreteMaxSpareNodeTest6() throws SolverException {
+        ShareableResource resources = new ShareableResource("vcpu", 1);
+        resources.set(n1, 4);
+        resources.set(n2, 8);
+        resources.set(n3, 2);
+        resources.set(vm4, 2);
+
+        Mapping map = new MappingBuilder().on(n1, n2, n3).off(n4, n5)
+                .run(n1, vm5, vm6)
+                .run(n2, vm1, vm2).build();
+
+
+        Model model = new DefaultModel(map);
+        model.attach(resources);
+
+        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3, n4, n5));
+        Online online = new Online(new HashSet<UUID>(Arrays.asList(n4, n5)));
+        MaxSpareNode msn = new MaxSpareNode(nodes, 0);
+        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
+        List<SatConstraint> constraints = new ArrayList<SatConstraint>();
+        constraints.add(msn);
+        constraints.add(online);
+        constraints.add(overbook);
+
+        ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
+        cra.repair(false);
+        cra.setVerbosity(2);
+        ReconfigurationPlan plan = cra.solve(model, constraints);
+
+        Assert.assertNotNull(plan);
+        System.out.println(plan.toString());
+        System.out.println(plan.getResult().getMapping().toString());
+        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
     @Test

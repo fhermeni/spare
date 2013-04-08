@@ -32,7 +32,7 @@ public class Idle {
     // The end moment of node being idle
     private IntDomainVar idle_end;
 
-    final int MAX_TIME = 3600;
+    final int MAX_TIME = 120;
 
     public Idle(ReconfigurationProblem rp, UUID n) throws SolverException {
 

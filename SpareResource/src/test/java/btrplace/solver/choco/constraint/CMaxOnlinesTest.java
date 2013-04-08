@@ -13,6 +13,7 @@ import btrplace.plan.event.ShutdownNode;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
+import btrplace.solver.choco.MappingBuilder;
 import btrplace.solver.choco.durationEvaluator.ConstantDuration;
 import btrplace.test.PremadeElements;
 import org.testng.Assert;
@@ -24,13 +25,10 @@ public class CMaxOnlinesTest implements PremadeElements {
 
     @Test
     public void discreteMaxonlinesTest() throws SolverException {
-        Mapping map = new DefaultMapping();
-        map.addOnlineNode(n1);
-        map.addOnlineNode(n2);
-        map.addOnlineNode(n3);
-        map.addRunningVM(vm1, n1);
-        map.addRunningVM(vm2, n2);
-        map.addRunningVM(vm3, n3);
+        Mapping map = new MappingBuilder().on(n1, n2, n3)
+                .run(n1, vm1)
+                .run(n2, vm2)
+                .run(n3, vm3).build();
         Model model = new DefaultModel(map);
         Set<UUID> nodes = map.getAllNodes();
         MaxOnlines maxon = new MaxOnlines(nodes, 1);
@@ -39,9 +37,9 @@ public class CMaxOnlinesTest implements PremadeElements {
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
-        Assert.assertEquals(maxon.isSatisfied(plan.getResult()), Sat.SATISFIED);
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
+        Assert.assertEquals(maxon.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
     @Test
@@ -51,14 +49,10 @@ public class CMaxOnlinesTest implements PremadeElements {
         resources.set(n2, 8);
         resources.set(n3, 2);
         resources.set(vm4, 2);
-        Mapping map = new DefaultMapping();
-        map.addOnlineNode(n1);
-        map.addOnlineNode(n2);
-        map.addOnlineNode(n3);
-        map.addRunningVM(vm1, n1);
-        map.addRunningVM(vm4, n1);
-        map.addRunningVM(vm2, n2);
-        map.addRunningVM(vm3, n3);
+        Mapping map = new MappingBuilder().on(n1, n2, n3)
+                .run(n1, vm1, vm4)
+                .run(n2, vm2)
+                .run(n3, vm3).build();
         Model model = new DefaultModel(map);
         model.attach(resources);
         Set<UUID> nodes = map.getAllNodes();
@@ -74,9 +68,9 @@ public class CMaxOnlinesTest implements PremadeElements {
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
-        Assert.assertEquals(maxon.isSatisfied(plan.getResult()), Sat.SATISFIED);
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
+        Assert.assertEquals(maxon.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
     @Test
@@ -103,6 +97,7 @@ public class CMaxOnlinesTest implements PremadeElements {
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
+        Assert.assertEquals(maxon.isSatisfied(plan), Sat.SATISFIED);
     }
 
 
@@ -131,6 +126,7 @@ public class CMaxOnlinesTest implements PremadeElements {
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
+        Assert.assertEquals(maxon.isSatisfied(plan), Sat.SATISFIED);
     }
 
     @Test
@@ -140,16 +136,10 @@ public class CMaxOnlinesTest implements PremadeElements {
         resources.set(n2, 8);
         resources.set(n3, 4);
         resources.set(vm4, 2);
-        Mapping map = new DefaultMapping();
-        map.addOnlineNode(n1);
-        map.addOnlineNode(n2);
-        map.addOfflineNode(n3);
-        map.addRunningVM(vm1, n1);
-        map.addRunningVM(vm5, n1);
-        map.addRunningVM(vm6, n1);
-        map.addRunningVM(vm2, n2);
-        map.addRunningVM(vm3, n2);
-        map.addRunningVM(vm4, n2);
+        Mapping map = new MappingBuilder().on(n1, n2).off(n3)
+                .run(n1, vm1, vm5, vm6)
+                .run(n2, vm2, vm3, vm4)
+                .run(n3, vm3).build();
         Model model = new DefaultModel(map);
         model.attach(resources);
         Set<UUID> nodes = map.getAllNodes();
@@ -171,5 +161,6 @@ public class CMaxOnlinesTest implements PremadeElements {
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
+        Assert.assertEquals(maxon.isSatisfied(plan), Sat.SATISFIED);
     }
 }

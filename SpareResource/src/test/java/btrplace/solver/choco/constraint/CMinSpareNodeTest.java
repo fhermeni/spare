@@ -10,10 +10,15 @@ import btrplace.model.constraint.Overbook;
 import btrplace.model.constraint.Running;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
+import btrplace.plan.event.BootNode;
+import btrplace.plan.event.KillVM;
+import btrplace.plan.event.MigrateVM;
+import btrplace.plan.event.ShutdownNode;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
+import btrplace.solver.choco.durationEvaluator.ConstantDuration;
 import btrplace.test.PremadeElements;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -191,5 +196,187 @@ public class CMinSpareNodeTest implements PremadeElements {
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+    }
+
+    @Test
+    public void testMinSNContinuousSimplest() throws SolverException {
+        Mapping map = new MappingBuilder().on(n1, n2).off(n3)
+                .run(n1, vm1)
+                .ready(vm3).build();
+
+        ShareableResource resources = new ShareableResource("vcpu", 1);
+
+        Model model = new DefaultModel(map);
+        model.attach(resources);
+
+        Set<UUID> nodes = map.getAllNodes();
+        Running running = new Running(new HashSet<UUID>(Arrays.asList(vm3)));
+        MinSpareNode msn = new MinSpareNode(nodes, 1, true);
+        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
+        List<SatConstraint> constraints = new ArrayList<SatConstraint>();
+        constraints.add(overbook);
+        constraints.add(running);
+        constraints.add(msn);
+
+        ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
+        cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(3));
+        cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
+        cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
+        cra.setVerbosity(2);
+        ReconfigurationPlan plan = cra.solve(model, constraints);
+        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        System.out.println(plan);
+        System.out.println(plan.getResult());
+//        Assert.fail();
+    }
+
+    @Test
+    public void testMinSNContinuousOnSimple() throws SolverException {
+        Mapping map = new MappingBuilder().on(n1, n2, n3)
+                .run(n1, vm1)
+                .run(n2, vm3).ready(vm5, vm6).build();
+
+        ShareableResource resources = new ShareableResource("vcpu", 1);
+        resources.set(n1, 2);
+        resources.set(n2, 1);
+        resources.set(n3, 2);
+
+        Model model = new DefaultModel(map);
+        model.attach(resources);
+
+        Set<UUID> nodes = map.getAllNodes();
+        Running running = new Running(new HashSet<UUID>(Arrays.asList(vm5, vm6)));
+        MinSpareNode msn = new MinSpareNode(nodes, 1, true);
+        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
+        List<SatConstraint> constraints = new ArrayList<SatConstraint>();
+        constraints.add(running);
+        constraints.add(msn);
+        constraints.add(overbook);
+
+        ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
+        cra.getDurationEvaluators().register(BootNode.class, new ConstantDuration(4));
+        cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(3));
+        cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
+        cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
+//        cra.setVerbosity(2);
+        ReconfigurationPlan plan = cra.solve(model, constraints);
+        Assert.assertNotNull(plan);
+        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        System.out.println(plan);
+        System.out.println(plan.getResult());
+    }
+
+    @Test
+    public void testMinSNContinuosOnNormal() throws SolverException {
+        Mapping map = new MappingBuilder().on(n1, n2, n3)
+                .run(n1, vm1, vm4, vm2)
+                .run(n2, vm3).ready(vm5, vm6, vm7).build();
+
+        ShareableResource resources = new ShareableResource("vcpu", 1);
+        resources.set(n1, 4);
+        resources.set(n2, 2);
+        resources.set(n3, 4);
+
+        Model model = new DefaultModel(map);
+        model.attach(resources);
+
+        Set<UUID> nodes = map.getAllNodes();
+        Running running = new Running(new HashSet<UUID>(Arrays.asList(vm5, vm6, vm7)));
+        MinSpareNode msn = new MinSpareNode(nodes, 1, true);
+        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
+        List<SatConstraint> constraints = new ArrayList<SatConstraint>();
+        constraints.add(running);
+        constraints.add(msn);
+        constraints.add(overbook);
+
+        ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
+        cra.getDurationEvaluators().register(BootNode.class, new ConstantDuration(4));
+        cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(2));
+        cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
+        cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
+        cra.setMaxEnd(20);
+//        cra.setVerbosity(2);
+        ReconfigurationPlan plan = cra.solve(model, constraints);
+        Assert.assertNotNull(plan);
+        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        System.out.println(plan);
+        System.out.println(plan.getResult());
+    }
+
+    @Test
+    public void testMinSNContinuousComplex() throws SolverException {
+        Mapping map = new MappingBuilder().on(n1, n2, n3).off(n4)
+                .run(n1, vm1)
+                .run(n2, vm3)
+                .ready(vm2).build();
+
+        ShareableResource resources = new ShareableResource("vcpu", 1);
+        resources.set(n1, 1);
+        resources.set(n2, 1);
+        resources.set(n3, 1);
+        resources.set(n4, 1);
+
+        Model model = new DefaultModel(map);
+        model.attach(resources);
+
+        Set<UUID> nodes = map.getAllNodes();
+        Running runvms = new Running(new HashSet<UUID>(Arrays.asList(vm2)));
+        MinSpareNode msn = new MinSpareNode(nodes, 1, true);
+        List<SatConstraint> constraints = new ArrayList<SatConstraint>();
+        constraints.add(runvms);
+        constraints.add(msn);
+        constraints.add(new Overbook(map.getAllNodes(), "vcpu", 1));
+
+        ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
+        cra.getDurationEvaluators().register(BootNode.class, new ConstantDuration(4));
+        cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(2));
+        cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
+        cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
+        cra.setVerbosity(2);
+        ReconfigurationPlan plan = cra.solve(model, constraints);
+        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        System.out.println(plan);
+        System.out.println(plan.getResult());
+    }
+
+    @Test
+    public void testMinSNContinuousComplex2() throws SolverException {
+        Mapping map = new MappingBuilder().on(n1, n2, n3).off(n4, n5)
+                .run(n1, vm1)
+                .run(n2, vm3)
+                .ready(vm2, vm4).build();
+
+        ShareableResource resources = new ShareableResource("vcpu", 1);
+        resources.set(n1, 1);
+        resources.set(n2, 1);
+        resources.set(n3, 1);
+        resources.set(n4, 1);
+
+        Model model = new DefaultModel(map);
+        model.attach(resources);
+
+        Set<UUID> nodes = map.getAllNodes();
+        Running runvms = new Running(new HashSet<UUID>(Arrays.asList(vm2, vm4)));
+        MinSpareNode msn = new MinSpareNode(nodes, 1, true);
+        List<SatConstraint> constraints = new ArrayList<SatConstraint>();
+        constraints.add(runvms);
+        constraints.add(msn);
+        constraints.add(new Overbook(map.getAllNodes(), "vcpu", 1));
+
+        ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
+        cra.getDurationEvaluators().register(BootNode.class, new ConstantDuration(4));
+        cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(2));
+        cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
+        cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
+//        cra.setVerbosity(2);
+        ReconfigurationPlan plan = cra.solve(model, constraints);
+        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        System.out.println(plan);
+        System.out.println(plan.getResult());
     }
 }

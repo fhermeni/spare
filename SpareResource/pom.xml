@@ -28,7 +28,7 @@
         <dependency>
             <groupId>btrplace</groupId>
             <artifactId>solver-bundle</artifactId>
-            <version>0.29-SNAPSHOT</version>
+            <version>0.27</version>
         </dependency>
         <dependency>
             <groupId>btrplace</groupId>

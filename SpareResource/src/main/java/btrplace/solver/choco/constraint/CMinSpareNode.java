@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static btrplace.solver.choco.chocoUtil.ChocoUtils.postIfOnlyIf;
-import static btrplace.solver.choco.chocoUtil.ChocoUtils.postImplies;
 
 public class CMinSpareNode implements ChocoSatConstraint {
 
@@ -75,16 +74,9 @@ public class CMinSpareNode implements ChocoSatConstraint {
 
                     for (UUID n : rp.getSourceModel().getMapping().getAllNodes()/*cstr.getInvolvedNodes()*/) {
                         int i = rp.getNode(n);
-                        Idle idleNode = new Idle(rp, n);
                         IntDomainVar taskStart = solver.createBoundIntVar("T.S(" + n + ")" + n, 0, MAX_TIME);
                         IntDomainVar taskEnd = solver.createBoundIntVar("T.E(" + n + ")" + n, 0, MAX_TIME);
-                        IntDomainVar isIdle = solver.createBooleanVar("isIdle");
-                        postImplies(solver, solver.lt(idleNode.getStart(), idleNode.getEnd()), solver.eq(isIdle, 1));
 
-                        IntDomainVar[] a = new IntDomainVar[]{solver.makeConstantIntVar(0), idleNode.getStart(), isIdle, taskStart};
-                        IntDomainVar[] b = new IntDomainVar[]{solver.makeConstantIntVar(0), idleNode.getEnd(), isIdle, taskEnd};
-                        solver.post(new ElementV(a, 0, solver.getEnvironment()));
-                        solver.post(new ElementV(b, 0, solver.getEnvironment()));
 
                         idle_starts[i] = taskStart;
                         idle_ends[i] = taskEnd;
@@ -124,7 +116,7 @@ public class CMinSpareNode implements ChocoSatConstraint {
             IntDomainVar[] c = new IntDomainVar[]{solver.makeConstantIntVar(1), VMsOnAllNodes[rp.getNode(n)],
                     state, vmsOnInvolvedNodes[i]};
             solver.post(new ElementV(c, 0, solver.getEnvironment()));
-            // IF number of VMs on a node is 0 -> Idle
+            // IF number of VMs on a node is 0 -> idle
             idles[i] = solver.createBooleanVar("idle" + n);
             postIfOnlyIf(solver, idles[i], solver.eq(vmsOnInvolvedNodes[i], 0));
             i++;

@@ -4,9 +4,7 @@ import btrplace.model.Model;
 import btrplace.model.SatConstraint;
 import btrplace.model.constraint.MaxSpareNode;
 import btrplace.solver.SolverException;
-import btrplace.solver.choco.ChocoSatConstraint;
-import btrplace.solver.choco.ChocoSatConstraintBuilder;
-import btrplace.solver.choco.ReconfigurationProblem;
+import btrplace.solver.choco.*;
 import choco.cp.solver.CPSolver;
 import choco.cp.solver.constraints.global.scheduling.cumulative.Cumulative;
 import choco.cp.solver.constraints.integer.ElementV;
@@ -23,7 +21,7 @@ import static btrplace.solver.choco.chocoUtil.ChocoUtils.postImplies;
 public class CMaxSpareNode implements ChocoSatConstraint {
 
     private final MaxSpareNode cstr;
-    private final int MAX_TIME = 3600;
+    private final int MAX_TIME = 120;
 
     /**
      * Make a new constraint.
@@ -66,31 +64,38 @@ public class CMaxSpareNode implements ChocoSatConstraint {
 
                 // The end moment of node being idle
                 IntDomainVar[] idle_ends = new IntDomainVar[NUMBER_OF_NODE];
+                int i = 0;
+                for (UUID n : cstr.getInvolvedNodes()) {
+                    NodeActionModel na = rp.getNodeAction(n);
+                    idle_starts[i] = solver.createBoundIntVar("IS(" + n + ")", 0, MAX_TIME);
+                    idle_ends[i] = solver.createBoundIntVar("IE(" + n + ")", 0, MAX_TIME);
 
-                for (UUID n : rp.getSourceModel().getMapping().getAllNodes()/*cstr.getInvolvedNodes()*/) {
-                    int i = rp.getNode(n);
-                    Idle idleNode = new Idle(rp, n);
-                    IntDomainVar taskStart = solver.createBoundIntVar("T.S(" + n + ")" + n, 0, MAX_TIME);
-                    IntDomainVar taskEnd = solver.createBoundIntVar("T.E(" + n + ")" + n, 0, MAX_TIME);
-                    IntDomainVar isIdle = solver.createBooleanVar("isIdle");
-                    postImplies(solver, solver.lt(idleNode.getStart(), idleNode.getEnd()), solver.eq(isIdle, 1));
+                    Set<UUID> vms = rp.getSourceModel().getMapping().getRunningVMs(n);
+                    if (!vms.isEmpty()) {
+                        for (UUID vm : vms) {
+                            VMActionModel vma = rp.getVMAction(vm);
+                            Slice c = vma.getCSlice();
+                            solver.post(solver.geq(idle_starts[i], c.getEnd()));
+                        }
+                    } else {
+                        solver.post(solver.eq(idle_starts[i], na.getHostingStart()));
+                    }
 
-                    IntDomainVar[] a = new IntDomainVar[]{solver.makeConstantIntVar(0), idleNode.getStart(), isIdle, taskStart};
-                    IntDomainVar[] b = new IntDomainVar[]{solver.makeConstantIntVar(0), idleNode.getEnd(), isIdle, taskEnd};
-                    solver.post(new ElementV(a, 0, solver.getEnvironment()));
-                    solver.post(new ElementV(b, 0, solver.getEnvironment()));
 
-                    idle_starts[i] = taskStart;
-                    idle_ends[i] = taskEnd;
+                    for (VMActionModel vma : rp.getVMActions()) {
+                        Slice dSlice = vma.getDSlice();
+                        if (dSlice == null) continue;
+                        IntDomainVar eq = solver.createBooleanVar("eq");
+                        postIfOnlyIf(solver, eq, solver.eq(dSlice.getHoster(), rp.getNode(n)));
+                        postImplies(solver, eq, solver.leq(idle_ends[i], dSlice.getStart()));
+                    }
 
-//                    Test if it works when it does not touch the variables of DSlices
-//                        idle_starts[i] = solver.makeConstantIntVar(1);
-//                        idle_ends[i] = solver.makeConstantIntVar(1);
                     durations[i] = rp.makeDuration("Dur(" + n + ")");
                     heights[i] = solver.makeConstantIntVar(1); // All tasks have to be scheduled
                     taskvars[i] = solver.createTaskVar("Task_" + n, idle_starts[i], idle_ends[i], durations[i]);
-                    solver.post(solver.eq(idle_ends[i], solver.plus(idle_starts[i], durations[i])));
+                    i++;
                 }
+
                 Cumulative cumulative = new Cumulative(solver, "Cumulative", taskvars, heights,
                         consumption, capacity, uppBound);
                 solver.post(cumulative);
@@ -109,14 +114,13 @@ public class CMaxSpareNode implements ChocoSatConstraint {
             IntDomainVar[] c = new IntDomainVar[]{solver.makeConstantIntVar(-1), hostVM[rp.getNode(n)],
                     state, vmsOnNodes[i]};
             solver.post(new ElementV(c, 0, solver.getEnvironment()));
-            // IF number of VMs on a node is 0 -> Idle
+            // IF number of VMs on a node is 0 -> idle
             idles[i] = solver.createBooleanVar("idle" + n);
             postIfOnlyIf(solver, idles[i], solver.eq(vmsOnNodes[i], 0));
             i++;
         }
         IntExp Sidle = solver.sum(idles);
         solver.post(solver.leq(Sidle, cstr.getAmount()));
-        System.out.println(solver.pretty());
 
         /* // Other way for discrete  (more constraints)
         IntDomainVar[] hostVM = rp.getNbRunningVMs();

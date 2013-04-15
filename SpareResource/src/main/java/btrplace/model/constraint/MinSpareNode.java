@@ -6,10 +6,7 @@ import btrplace.model.SatConstraint;
 import btrplace.plan.Action;
 import btrplace.plan.ReconfigurationPlan;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * A constraint to force a set of nodes to reserve a minimum number of spare
@@ -34,6 +31,8 @@ public class MinSpareNode extends SatConstraint {
      */
     private final int qty;
 
+    private static HashMap<UUID, Integer> nodemap = new HashMap<UUID, Integer>();
+
     /**
      * Make a new constraint with a discrete restriction.
      *
@@ -55,6 +54,11 @@ public class MinSpareNode extends SatConstraint {
     public MinSpareNode(Set<UUID> servers, int n, boolean continuous) {
         super(Collections.<UUID>emptySet(), servers, continuous);
         qty = n;
+        int i = 0;
+        for (UUID node : getInvolvedNodes()) {
+            nodemap.put(node, i);
+            i++;
+        }
     }
 
     /**
@@ -89,20 +93,82 @@ public class MinSpareNode extends SatConstraint {
 
     @Override
     public Sat isSatisfied(ReconfigurationPlan p) {
-        Model mo = p.getOrigin();
-        if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-            return Sat.UNSATISFIED;
+        Model mo = p.getOrigin().clone();
+        Action[] actions = new Action[p.getSize()];
+        int idx = 0;
+        for (Action ac : p) {
+            actions[idx++] = ac;
         }
-        mo = p.getOrigin().clone();
-        for (Action a : p) {
-            if (!a.apply(mo)) {
+        Map<Integer, ArrayList<Integer>> cActions = concurrent(p);
+        ArrayList<Integer> skip = new ArrayList<Integer>();
+        for (int k = 0; k < idx; k++) {
+            if (skip.contains(k)) {
+                continue;
+            }
+            boolean[] idle_start = checkIdle(mo, getInvolvedNodes());
+
+            if (!actions[k].apply(mo)) {
                 return Sat.UNSATISFIED;
             }
-            if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
+//            if (cActions.containsKey(k)) {
+//                for (Integer m : cActions.get(k)) {
+//                    if (!actions[m].apply(mo)) {
+//                        return Sat.UNSATISFIED;
+//                    }
+//                    skip.add(m);
+//                }
+//            }
+
+            boolean[] idle_end = checkIdle(mo, getInvolvedNodes());
+
+            int nidle = 0;
+            for (int j = 0; j < idle_end.length; j++) {
+                if ((idle_start[j]) && (idle_end[j])) nidle++;
+            }
+            if (nidle < getAmount()) {
                 return Sat.UNSATISFIED;
             }
         }
         return Sat.SATISFIED;
+    }
+
+    private Map<Integer, ArrayList<Integer>> concurrent(ReconfigurationPlan p) {
+        //---------- find concurrent actions ------------
+        HashSet<Integer> skipIdx = new HashSet<Integer>();
+        Map<Integer, ArrayList<Integer>> concurrent_actions = new HashMap<Integer, ArrayList<Integer>>();
+        int idx = 0;
+        Action[] actions = new Action[p.getSize()];
+        for (Action ac : p) {
+            actions[idx++] = ac;
+        }
+
+        for (int i = 0; i < idx - 1; i++) {
+            if (skipIdx.contains(i)) continue;
+
+            ArrayList<Integer> alist = new ArrayList<Integer>();
+            for (int j = i + 1; j < idx; j++) {
+                if (actions[i].getStart() == actions[j].getStart()) {
+                    alist.add(j);
+                }
+            }
+            if (!alist.isEmpty()) {
+                concurrent_actions.put(i, alist);
+                skipIdx.addAll(alist);
+            }
+        }
+        //---------- find concurrent actions ------------
+        return concurrent_actions;
+    }
+
+    public boolean[] checkIdle(Model mo, Collection<UUID> s) {
+        boolean[] isIdle = new boolean[s.size()];
+        Mapping map = mo.getMapping();
+        for (UUID n : s) {
+            if (map.getRunningVMs(n).isEmpty() && map.getOnlineNodes().contains(n)) {
+                isIdle[nodemap.get(n)] = true;
+            }
+        }
+        return isIdle;
     }
 
     @Override

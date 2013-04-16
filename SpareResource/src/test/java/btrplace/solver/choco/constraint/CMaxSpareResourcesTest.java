@@ -166,7 +166,7 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test
+    @Test(enabled = false)
     public void testCMaxSpareResourcesContinuousSimple() throws SolverException {
 
         Mapping m = new MappingBuilder().on(n1, n2)
@@ -204,7 +204,7 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test
+    @Test(enabled = false)
     public void testCMaxSpareResourcesContinuous() throws SolverException {
 
         Mapping m = new MappingBuilder().on(n1, n2, n3)

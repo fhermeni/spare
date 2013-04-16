@@ -30,7 +30,7 @@ public class MaxSpareNode extends SatConstraint {
      */
     private final int qty;
 
-    private static HashMap<UUID, Integer> nodemap = new HashMap<UUID, Integer>();
+    private HashMap<UUID, Integer> nodemap = new HashMap<UUID, Integer>();
 
     /**
      * Make a new constraint with a discrete restriction.
@@ -111,14 +111,14 @@ public class MaxSpareNode extends SatConstraint {
             if (!actions[k].apply(mo)) {
                 return Sat.UNSATISFIED;
             }
-//            if (cActions.containsKey(k)) {
-//                for (Integer m : cActions.get(k)) {
-//                    if (!actions[m].apply(mo)) {
-//                        return Sat.UNSATISFIED;
-//                    }
-//                    skip.add(m);
-//                }
-//            }
+            if (cActions.containsKey(k)) {
+                for (Integer m : cActions.get(k)) {
+                    if (!actions[m].apply(mo)) {
+                        return Sat.UNSATISFIED;
+                    }
+                    skip.add(m);
+                }
+            }
 
             boolean[] idle_end = checkIdle(mo, getInvolvedNodes());
 
@@ -157,7 +157,7 @@ public class MaxSpareNode extends SatConstraint {
                 skipIdx.addAll(alist);
             }
         }
-        //---------- find concurrent actions ------------
+        //---------- End find concurrent actions ------------
         return concurrent_actions;
     }
 

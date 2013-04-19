@@ -95,7 +95,7 @@ public class MinSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan), Sat.UNSATISFIED);
         Assert.assertEquals(oc.isSatisfied(plan), Sat.SATISFIED);
 
-        plan.add(new MigrateVM(vm3, n2, n3, 0, 5));
+        plan.add(new MigrateVM(vm3, n2, n1, 0, 5));
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
         Assert.assertEquals(oc.isSatisfied(plan), Sat.SATISFIED);
 

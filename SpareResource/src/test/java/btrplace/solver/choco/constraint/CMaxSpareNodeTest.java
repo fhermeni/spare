@@ -24,7 +24,7 @@ import org.testng.annotations.Test;
 import java.util.*;
 
 public class CMaxSpareNodeTest implements PremadeElements {
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest1() throws SolverException {
 
         ShareableResource resources = new ShareableResource("vcpu", 1);
@@ -57,7 +57,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest2() throws SolverException {
         ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 4);
@@ -88,7 +88,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest3() throws SolverException {
         ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 2);
@@ -117,7 +117,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest4() throws SolverException {
         ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 4);
@@ -152,7 +152,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest5() throws SolverException {
         ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 4);
@@ -184,7 +184,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest6() throws SolverException {
         ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 4);
@@ -221,7 +221,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTestMassive() throws SolverException {
 
         UUID n6 = UUID.randomUUID();
@@ -267,7 +267,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test(dependsOnGroups = {"discrete"})
+    @Test(timeOut = 10000)
     public void testMaxSNContinuousSimplest() throws SolverException {
         Mapping map = new MappingBuilder().on(n1, n2)
                 .run(n1, vm1, vm2)
@@ -301,7 +301,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
     }
 
-    @Test(dependsOnMethods = {"testMaxSNContinuousSimplest"})
+    @Test(timeOut = 10000, dependsOnMethods = {"testMaxSNContinuousSimplest"})
     public void testMaxSNContinuousSimplest2() throws SolverException {
         Mapping map = new MappingBuilder().on(n1, n2)
                 .run(n1, vm1, vm2)
@@ -334,7 +334,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
     }
 
-    @Test(dependsOnMethods = {"testMaxSNContinuousSimplest2"})
+    @Test(timeOut = 10000, dependsOnMethods = {"testMaxSNContinuousSimplest2"})
     public void testMaxSNContinuousSimple() throws SolverException {
         Mapping map = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm4)
@@ -373,7 +373,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
 //        Assert.fail();
     }
 
-    @Test(dependsOnMethods = {"testMaxSNContinuousSimple"})
+    @Test(timeOut = 10000, dependsOnMethods = {"testMaxSNContinuousSimple"})
     public void testMaxSNContinuous1() throws SolverException {
         Mapping map = new MappingBuilder().on(n1, n2).off(n3)
                 .run(n1, vm1).build();
@@ -409,7 +409,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
     }
 
-    @Test(dependsOnMethods = {"testMaxSNContinuousSimple"})
+    @Test(timeOut = 10000, dependsOnMethods = {"testMaxSNContinuousSimple"})
     public void testMaxSNContinuous2() throws SolverException {
         Mapping map = new MappingBuilder().on(n1, n2).off(n3).ready(vm2, vm3)
                 .run(n1, vm1).build();
@@ -483,6 +483,5 @@ public class CMaxSpareNodeTest implements PremadeElements {
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
-        Assert.fail();
     }
 }

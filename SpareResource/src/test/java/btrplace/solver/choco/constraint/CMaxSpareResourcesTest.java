@@ -193,7 +193,7 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(2));
-        cra.setVerbosity(2);
+        //cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(mo, l);
 
         Assert.assertNotNull(plan);

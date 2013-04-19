@@ -22,7 +22,7 @@ import java.util.*;
 
 public class CMinSpareResourcesTest implements PremadeElements {
 
-    @Test
+    @Test(timeOut = 10000)
     public void testCMinSpareResourcesDiscrete() throws SolverException {
 
         Mapping m = new MappingBuilder().on(n1, n2, n3)
@@ -56,7 +56,7 @@ public class CMinSpareResourcesTest implements PremadeElements {
         Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void test2CMinSpareResourcesDiscrete() throws SolverException {
 
         Mapping m = new MappingBuilder().on(n1, n2, n3)
@@ -126,8 +126,9 @@ public class CMinSpareResourcesTest implements PremadeElements {
         System.out.println(plan.getResult().getMapping().toString());
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testGetMisPlacedVMs() {
+
         Mapping m = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm3)
                 .run(n2, vm2, vm4).build();
@@ -147,8 +148,9 @@ public class CMinSpareResourcesTest implements PremadeElements {
         Assert.assertTrue(!cc.getMisPlacedVMs(mo).contains(vm5));
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testInject() throws SolverException {
+
         Mapping m = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm3)
                 .run(n2, vm2, vm4)
@@ -180,8 +182,9 @@ public class CMinSpareResourcesTest implements PremadeElements {
         System.out.println(plan.getResult().getMapping().toString());
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testContinuousCMinSpareResources() throws SolverException {
+
         Mapping m = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm3)
                 .run(n2, vm2, vm4)
@@ -222,8 +225,9 @@ public class CMinSpareResourcesTest implements PremadeElements {
 
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testwithOverBook() throws SolverException {
+
         Mapping m = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm3)
                 .run(n2, vm2, vm4)
@@ -257,12 +261,12 @@ public class CMinSpareResourcesTest implements PremadeElements {
         System.out.println(plan.getResult().getMapping().toString());
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void discreteminSpareResourceTest() throws SolverException {
+
         Mapping m = new MappingBuilder().on(n1, n2).off(n3)
                 .run(n1, vm1, vm3, vm5)
-                .run(n2, vm2, vm4, vm6)
-                .run(n3, vm5, vm6).ready(vm7).build();
+                .run(n2, vm2, vm4, vm6).ready(vm7).build();
 
         btrplace.model.view.ShareableResource rc = new ShareableResource("vcpu", 5);
         rc.set(vm1, 2);
@@ -295,12 +299,12 @@ public class CMinSpareResourcesTest implements PremadeElements {
         System.out.println(plan.getResult().getMapping().toString());
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void discreteminSpareResourceTest2() throws SolverException {
+
         Mapping m = new MappingBuilder().on(n1, n2).off(n3, n4)
                 .run(n1, vm1, vm3, vm5)
-                .run(n2, vm2, vm4, vm6)
-                .run(n3, vm5, vm6).ready(vm7).build();
+                .run(n2, vm2, vm4, vm6).ready(vm7).build();
 
         btrplace.model.view.ShareableResource rc = new ShareableResource("vcpu", 5);
         rc.set(vm1, 2);

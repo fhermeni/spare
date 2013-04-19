@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 import java.util.*;
 
 public class CMinSpareNodeTest implements PremadeElements {
-    @Test
+    @Test(timeOut = 10000)
     public void discreteMinSpareNodeTest1() throws SolverException {
 
         ShareableResource resources = new ShareableResource("vcpu", 1);
@@ -61,7 +61,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void discreteMinSpareNodeTest2() throws SolverException {
 
         ShareableResource resources = new ShareableResource("vcpu", 1);
@@ -96,7 +96,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void discreteMinSpareNodeTest3() throws SolverException {
 
         ShareableResource resources = new ShareableResource("vcpu", 1);
@@ -129,7 +129,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void discreteMinSpareNodeTest4() throws SolverException {
 
         ShareableResource resources = new ShareableResource("vcpu", 1);
@@ -154,7 +154,7 @@ public class CMinSpareNodeTest implements PremadeElements {
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-        cra.setVerbosity(1);
+        //cra.setVerbosity(1);
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);
@@ -163,7 +163,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void continuousMinSpareNodeTest1() throws SolverException {
 
         ShareableResource resources = new ShareableResource("vcpu", 1);
@@ -191,7 +191,8 @@ public class CMinSpareNodeTest implements PremadeElements {
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-        cra.setVerbosity(2);
+        //cra.setVerbosity(2);
+        cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());
@@ -199,8 +200,9 @@ public class CMinSpareNodeTest implements PremadeElements {
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testMinSNContinuousSimplest() throws SolverException {
+
         Mapping map = new MappingBuilder().on(n1, n2).off(n3)
                 .run(n1, vm1)
                 .ready(vm3).build();
@@ -224,7 +226,8 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(3));
         cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-        cra.setVerbosity(2);
+        //cra.setVerbosity(2);
+        cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
         System.out.println(plan);
@@ -232,8 +235,9 @@ public class CMinSpareNodeTest implements PremadeElements {
 //        Assert.fail();
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testMinSNContinuousOnSimple() throws SolverException {
+
         Mapping map = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1)
                 .run(n2, vm3).ready(vm5, vm6).build();
@@ -261,7 +265,8 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(3));
         cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-//        cra.setVerbosity(2);
+//        //cra.setVerbosity(2);
+        cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
@@ -269,8 +274,9 @@ public class CMinSpareNodeTest implements PremadeElements {
         System.out.println(plan.getResult());
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testMinSNContinuosOnNormal() throws SolverException {
+
         Mapping map = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm4, vm2)
                 .run(n2, vm3).ready(vm5, vm6, vm7).build();
@@ -298,8 +304,8 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(2));
         cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-        cra.setMaxEnd(20);
-//        cra.setVerbosity(2);
+        cra.setMaxEnd(10);
+//        //cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
@@ -307,8 +313,9 @@ public class CMinSpareNodeTest implements PremadeElements {
         System.out.println(plan.getResult());
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testMinSNContinuousComplex() throws SolverException {
+
         Mapping map = new MappingBuilder().on(n1, n2, n3).off(n4)
                 .run(n1, vm1)
                 .run(n2, vm3)
@@ -337,15 +344,17 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(2));
         cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-        cra.setVerbosity(2);
+        //cra.setVerbosity(2);
+        cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
         System.out.println(plan);
         System.out.println(plan.getResult());
     }
 
-    @Test
+    @Test(timeOut = 20000)
     public void testMinSNContinuousComplex2() throws SolverException {
+
         Mapping map = new MappingBuilder().on(n1, n2, n3).off(n4, n5)
                 .run(n1, vm1)
                 .run(n2, vm3)
@@ -369,12 +378,13 @@ public class CMinSpareNodeTest implements PremadeElements {
         constraints.add(new Overbook(map.getAllNodes(), "vcpu", 1));
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
-        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
+/*        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
         cra.getDurationEvaluators().register(BootNode.class, new ConstantDuration(4));
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(2));
-        cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
+        cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));*/
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-//        cra.setVerbosity(2);
+        //cra.setVerbosity(2);
+        cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
         System.out.println(plan);
@@ -382,8 +392,9 @@ public class CMinSpareNodeTest implements PremadeElements {
     }
 
 
-    @Test
+    @Test(timeOut = 10000)
     public void testContinuousComplex3() throws SolverException {
+
         Mapping map = new MappingBuilder().on(n1, n2, n3).off(n4, n5).ready(vm2, vm3)
                 .run(n1, vm1, vm6)
                 .run(n2, vm4).build();
@@ -418,7 +429,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
         cra.setMaxEnd(20);
-//        cra.setVerbosity(2);
+//        ////cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());

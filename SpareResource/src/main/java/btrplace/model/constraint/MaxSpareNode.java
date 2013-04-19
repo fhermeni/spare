@@ -47,12 +47,12 @@ public class MaxSpareNode extends SatConstraint {
     /**
      * Make a new constraint stating the restriction explicitly
      *
-     * @param servers    the group of nodes
+     * @param nodes      the group of nodes
      * @param n          the number of nodes to be reserved
      * @param continuous {@code true} for a continuous restriction.
      */
-    public MaxSpareNode(Set<UUID> servers, int n, boolean continuous) {
-        super(Collections.<UUID>emptySet(), servers, continuous);
+    public MaxSpareNode(Set<UUID> nodes, int n, boolean continuous) {
+        super(Collections.<UUID>emptySet(), nodes, continuous);
         qty = n;
 
         int i = 0;

@@ -69,8 +69,8 @@ public class CMaxOnlines implements ChocoSatConstraint {
                 IntDomainVar[] Durations = new IntDomainVar[NUMBER_OF_TASK];  // Online duration
                 TaskVar[] taskvars = new TaskVar[NUMBER_OF_TASK];  // Online duration is modeled as a task
 
-                for (int idx : nodeIdx) {
-                    UUID n = rp.getNode(idx);
+                for (int idx = 0; idx < nodeIdx.length; idx++) {
+                    UUID n = rp.getNode(nodeIdx[idx]);
                     NodeActionModel nodeAction = rp.getNodeAction(n);
 
 

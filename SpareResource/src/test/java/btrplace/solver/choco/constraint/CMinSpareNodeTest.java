@@ -378,10 +378,10 @@ public class CMinSpareNodeTest implements PremadeElements {
         constraints.add(new Overbook(map.getAllNodes(), "vcpu", 1));
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
-/*        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
+        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
         cra.getDurationEvaluators().register(BootNode.class, new ConstantDuration(4));
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(2));
-        cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));*/
+        cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
         //cra.setVerbosity(2);
         cra.setMaxEnd(15);

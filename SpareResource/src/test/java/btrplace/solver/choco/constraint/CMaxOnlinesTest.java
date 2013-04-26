@@ -278,6 +278,8 @@ public class CMaxOnlinesTest implements PremadeElements {
         constraints.add(new Online(new HashSet<UUID>(Arrays.asList(n4, n5))));
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(5));
+        cra.getDurationEvaluators().register(BootNode.class, new ConstantDuration(4));
         cra.setMaxEnd(15);
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);

@@ -248,6 +248,11 @@ public class TraceReader {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Number of:\nNodes: %d\nResources: %d\nVMs: %d\nServices: %d\n" +
+                "Neighborhoods: %d\nLocation: %d\nDependences: %d\nBalance costs: %d\n",
+                number_of_nodes, number_resources, number_of_vm, number_of_services, neighbors.size(),
+                locations.size(), map_service_depend.size(), number_of_balance_cost));
+
         sb.append("nodes:\n");
         for (UUID n : nodes) {
             sb.append(n + "\n");
@@ -284,14 +289,21 @@ public class TraceReader {
             sb.append("balance tripe: " + balance_triple.get(key) + "\n");
         }
 
-        sb.append("costs:" + costs + "\n");
-
         sb.append("Assignment:\n");
 
         for (Integer key : assigment.keySet()) {
             sb.append(key + "=" + assigment.get(key) + "\n");
         }
 
+        return sb.toString();
+    }
+
+    public String summary() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Number of:\nNodes: %d\nResources: %d\nVMs: %d\nServices: %d\n" +
+                "Neighborhoods: %d\nLocation: %d\nDependences: %d\nBalance costs: %d\n",
+                number_of_nodes, number_resources, number_of_vm, number_of_services, neighbors.size(),
+                locations.size(), map_service_depend.size(), number_of_balance_cost));
         return sb.toString();
     }
 

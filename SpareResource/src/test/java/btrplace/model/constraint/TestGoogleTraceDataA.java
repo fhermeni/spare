@@ -24,9 +24,10 @@ import java.util.*;
  * Time: 2:41 PM
  * To change this template use File | Settings | File Templates.
  */
-public class TestTraceReader {
-    private static final Logger log = LoggerFactory.getLogger(TestTraceReader.class.getPackage().getName());
+public class TestGoogleTraceDataA {
+    private static final Logger log = LoggerFactory.getLogger(TestGoogleTraceDataA.class.getPackage().getName());
     private final String filename = "/user/hdang/home/Downloads/google_trace/dataA/";
+    private static Model intermediateModel;
 
     @Test
     public void testTraceReaderDataA1_1() throws IOException, SolverException {
@@ -113,12 +114,12 @@ public class TestTraceReader {
 
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
 
-        for (Integer key : tr.getServices_vms().keySet()) {
-            ArrayList<UUID> uuids = tr.getServices_vms().get(key);
+        for (Integer key : tr.getAllServices().keySet()) {
+            ArrayList<UUID> uuids = tr.getAllServices().get(key);
             System.out.println(uuids);
         }
-        for (Integer key : tr.getServices_vms().keySet()) {
-            ArrayList<UUID> uuids = tr.getServices_vms().get(key);
+        for (Integer key : tr.getAllServices().keySet()) {
+            ArrayList<UUID> uuids = tr.getAllServices().get(key);
             Set<UUID> vmSet = new HashSet<UUID>(uuids);
             Gather gather = new Gather(vmSet);
             constraints.add(gather);
@@ -149,7 +150,7 @@ public class TestTraceReader {
                 filename + "assignment_a1_3.txt");
         tr.readModel();
         tr.readAssigment();
-        log.info(tr.summary());
+        log.info("\n" + tr.summary());
         Model model = new DefaultModel(tr.getMapping());
         for (ShareableResource sr : tr.getShareableResources()) {
             model.attach(sr);
@@ -157,32 +158,40 @@ public class TestTraceReader {
 
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
 
-        for (Integer key : tr.getServices_vms().keySet()) {
-            ArrayList<UUID> uuids = tr.getServices_vms().get(key);
-            Set<UUID> vmSet = new HashSet<UUID>(uuids);
-            Spread spread = new Spread(vmSet, true);
-            constraints.add(spread);
+        ArrayList<UUID> uuids = tr.getAllServices().get(1);
+        Set<Set<UUID>> vmSet = new HashSet<Set<UUID>>();
+        vmSet.add(new HashSet<UUID>(uuids));
+//        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(new UUID(1, 1), new UUID(1, 2), new UUID(1, 3)));
+        Set<Set<UUID>> nodes = new HashSet<Set<UUID>>();
+        nodes.add(new HashSet<UUID>(tr.getNeighborMap().get(1)));
+
+        SplitAmong sa = new SplitAmong(vmSet, nodes);
+        constraints.add(sa);
+
+        for (SatConstraint sat : constraints) {
+            log.info(sat.toString());
         }
 
-        HashSet<UUID> vms1 = new HashSet<UUID>(Arrays.asList(new UUID(0, 1)));
-        Lonely lonely = new Lonely(vms1);
-        constraints.add(lonely);
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
-        cra.setVerbosity(0);
 
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
+        intermediateModel = plan.getResult();
+        Assert.assertEquals(model.equals(intermediateModel), false);
+        log.info("\nNumber of actions: " + plan.getSize());
+        log.info("\n" + plan.toString());
+
+        Offline offline = new Offline(new HashSet<UUID>(Arrays.asList(new UUID(1, 1))));
+        constraints.add(offline);
+        plan = cra.solve(model, constraints);
+        sa.setContinuous(true);
         for (SatConstraint sat : constraints) {
-            if (sat.isContinuous()) {
-                Assert.assertEquals(sat.isSatisfied(plan), SatConstraint.Sat.SATISFIED);
-            } else {
-                Assert.assertEquals(sat.isSatisfied(plan.getResult()), SatConstraint.Sat.SATISFIED);
-            }
+            log.info(sat.toString());
         }
-        Model result = plan.getResult();
-        Assert.assertEquals(model.equals(result), false);
 
-        log.info(plan.toString());
-
+        intermediateModel = plan.getResult();
+        Assert.assertEquals(plan.getOrigin().equals(plan.getResult()), false);
+        log.info("\nNumber of actions: " + plan.getSize());
+        log.info("\n" + plan.toString());
     }
 }

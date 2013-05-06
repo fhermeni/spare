@@ -24,7 +24,7 @@ public class TraceReader {
     private Map<Integer, ArrayList<UUID>> neighbors;
     private Map<Integer, ArrayList<UUID>> locations;
     private ArrayList<Integer> spreadMin;
-    private ArrayList<Integer> pmcs;
+    private ArrayList<Integer> process_move_costs;
     private Map<Integer, ArrayList<Integer>> map_service_depend;
     private Map<Integer, ArrayList<Integer>> balance_triple;
     private ArrayList<Integer> costs;
@@ -34,9 +34,11 @@ public class TraceReader {
     private ArrayList<UUID> nodes;
     private ArrayList<UUID> vms;
     private ArrayList<ShareableResource> shareableResources;
-    private Map<Integer, ArrayList<UUID>> services_vms;
+    private Map<Integer, ArrayList<UUID>> allServices;
     private Map<Integer, Integer> assigment;
     private Mapping mapping;
+    private int services_non_unit;
+    private int max_per_service;
 
     public TraceReader(String model, String assignmentPath) throws IOException {
         model_file = model;
@@ -53,13 +55,15 @@ public class TraceReader {
         neighbors = new HashMap<Integer, ArrayList<UUID>>();
         locations = new HashMap<Integer, ArrayList<UUID>>();
         spreadMin = new ArrayList<Integer>();
-        pmcs = new ArrayList<Integer>();
+        process_move_costs = new ArrayList<Integer>();
         map_service_depend = new HashMap<Integer, ArrayList<Integer>>();
-        services_vms = new HashMap<Integer, ArrayList<UUID>>();
+        allServices = new HashMap<Integer, ArrayList<UUID>>();
         balance_triple = new HashMap<Integer, ArrayList<Integer>>();
         costs = new ArrayList<Integer>(4);
         assigment = new HashMap<Integer, Integer>();
         mapping = new DefaultMapping();
+        services_non_unit = 0;
+        max_per_service = 0;
     }
 
     public String getAssigment_file() {
@@ -148,7 +152,9 @@ public class TraceReader {
             spreadMin.add(Integer.parseInt(service.nextToken()));
 
             int dependOn = Integer.parseInt(service.nextToken());
+            max_per_service += dependOn;
             if (dependOn > 0) {
+                services_non_unit++;
                 ArrayList depend_list = new ArrayList<Integer>();
                 while (service.hasMoreTokens()) {
                     depend_list.add(Integer.parseInt(service.nextToken()));
@@ -170,13 +176,13 @@ public class TraceReader {
                 StringTokenizer vm_spec = new StringTokenizer(line);
 
                 int service_id = Integer.parseInt(vm_spec.nextToken());
-                if (services_vms.containsKey(service_id)) {
-                    ArrayList<UUID> contain_vms = services_vms.get(service_id);
+                if (allServices.containsKey(service_id)) {
+                    ArrayList<UUID> contain_vms = allServices.get(service_id);
                     contain_vms.add(vm);
                 } else {
                     ArrayList<UUID> contain_vms = new ArrayList<UUID>();
                     contain_vms.add(vm);
-                    services_vms.put(service_id, contain_vms);
+                    allServices.put(service_id, contain_vms);
                 }
 
                 for (int j = 0; j < number_resources; j++) {
@@ -186,7 +192,7 @@ public class TraceReader {
                     }
                 }
 
-                pmcs.add(Integer.parseInt(vm_spec.nextToken()));
+                process_move_costs.add(Integer.parseInt(vm_spec.nextToken()));
             }
         }
 
@@ -251,7 +257,7 @@ public class TraceReader {
         sb.append(String.format("Number of:\nNodes: %d\nResources: %d\nVMs: %d\nServices: %d\n" +
                 "Neighborhoods: %d\nLocation: %d\nDependences: %d\nBalance costs: %d\n",
                 number_of_nodes, number_resources, number_of_vm, number_of_services, neighbors.size(),
-                locations.size(), map_service_depend.size(), number_of_balance_cost));
+                locations.size(), services_non_unit, number_of_balance_cost));
 
         sb.append("nodes:\n");
         for (UUID n : nodes) {
@@ -273,7 +279,7 @@ public class TraceReader {
         }
 
         sb.append("SpreadMin: " + spreadMin + "\n");
-        sb.append("PMC: " + pmcs + "\n");
+        sb.append("PMC: " + process_move_costs + "\n");
 
         sb.append("Dependencies:\n");
         for (Integer key : map_service_depend.keySet()) {
@@ -281,8 +287,8 @@ public class TraceReader {
         }
 
         sb.append("Services:\n");
-        for (Integer key : services_vms.keySet()) {
-            sb.append(key + " contains: " + services_vms.get(key) + "\n");
+        for (Integer key : allServices.keySet()) {
+            sb.append(key + " contains: " + allServices.get(key) + "\n");
         }
 
         for (Integer key : balance_triple.keySet()) {
@@ -296,20 +302,6 @@ public class TraceReader {
         }
 
         return sb.toString();
-    }
-
-    public String summary() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("Number of:\nNodes: %d\nResources: %d\nVMs: %d\nServices: %d\n" +
-                "Neighborhoods: %d\nLocation: %d\nDependences: %d\nBalance costs: %d\n",
-                number_of_nodes, number_resources, number_of_vm, number_of_services, neighbors.size(),
-                locations.size(), map_service_depend.size(), number_of_balance_cost));
-        return sb.toString();
-    }
-
-
-    public String getModel_file() {
-        return model_file;
     }
 
     public int getNumber_resources() {
@@ -336,39 +328,156 @@ public class TraceReader {
         return shareableResources;
     }
 
+    /**
+     * This method returns the summary of the data set
+     *
+     * @return String shortly describes the data set
+     */
+    public String summary() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Number of:\nNodes: %d\nResources: %d\nVMs: %d\nServices: %d\n" +
+                "Neighborhoods: %d\nLocation: %d\nDependences: %d\nBalance costs: %d\n",
+                number_of_nodes, number_resources, number_of_vm, getServicesSpread().size(), neighbors.size(),
+                locations.size(), max_per_service, number_of_balance_cost));
+        return sb.toString();
+    }
+
+    /**
+     * This method returns all the nodes in the data set
+     *
+     * @return Set of all nodes
+     */
     public ArrayList<UUID> getNodes() {
         return nodes;
     }
 
-    public Map<Integer, ArrayList<UUID>> getNeighbors() {
+    /**
+     * This method returns a map indicates each neighborhood with the nodes belonging to it
+     *
+     * @return Map of neighbors
+     */
+    public Map<Integer, ArrayList<UUID>> getNeighborMap() {
         return neighbors;
     }
 
-    public Map<Integer, ArrayList<UUID>> getLocations() {
+    /**
+     * This method returns a map that indicates each location with the nodes belonging to it
+     *
+     * @return Map of location
+     */
+    public Map<Integer, ArrayList<UUID>> getLocationMap() {
         return locations;
     }
 
+    /**
+     * This method returns an array of minimum numbers of spread requirement for each services
+     *
+     * @return Array of Integer
+     */
     public ArrayList<Integer> getSpreadMin() {
         return spreadMin;
     }
 
-    public ArrayList<Integer> getPmcs() {
-        return pmcs;
+    /**
+     * Get the required number of spread of a specific service
+     *
+     * @param index
+     * @return Integer indicates minimum of spread locations of a service
+     */
+    public int getSpreadMin(int index) {
+        return spreadMin.get(index);
     }
 
-    public Map<Integer, ArrayList<Integer>> getMap_service_depend() {
+    /**
+     * This method returns the Process Move Cost of all processes
+     *
+     * @return
+     */
+    public ArrayList<Integer> getProcess_move_costs() {
+        return process_move_costs;
+    }
+
+    /**
+     * This method returns the Process Move Cost of a specific process
+     *
+     * @param processId
+     * @return Process Move Cost
+     */
+    public int getProcess_move_costs(int processId) {
+        return process_move_costs.get(processId);
+    }
+
+
+    /**
+     * This method returns the dependency map which indicates which services depends on other services.
+     *
+     * @return Map of dependency. Key is processId and value is the list of processes that it depends on.
+     */
+    public Map<Integer, ArrayList<Integer>> getDependencyMap() {
         return map_service_depend;
     }
 
-    public Map<Integer, ArrayList<UUID>> getServices_vms() {
-        return services_vms;
+    /**
+     * This method returns all services
+     *
+     * @return
+     */
+    public Map<Integer, ArrayList<UUID>> getAllServices() {
+        return allServices;
     }
 
-    public Map<Integer, ArrayList<Integer>> getBalance_triple() {
+
+    /**
+     * This method returns the balance triples
+     *
+     * @return Map (TripleId, BalanceTriple)
+     */
+    public Map<Integer, ArrayList<Integer>> getBalanceTriple() {
         return balance_triple;
     }
 
+
+    /**
+     * This method returns all weights of the costs:
+     * 1. weight of Balance Cost
+     * 2. weight of Process Move Cost
+     * 3. weight of Service Move Cost
+     * 4. weight of Machine Move Cost
+     *
+     * @return An Array of Weights of the Costs
+     */
     public ArrayList<Integer> getCosts() {
         return costs;
+    }
+
+    /**
+     * This method returns the services having more than one process
+     *
+     * @return Map(service, [processes]);
+     */
+    public Map<Integer, ArrayList<UUID>> getServicesSpread() {
+        Map<Integer, ArrayList<UUID>> map = new HashMap<Integer, ArrayList<UUID>>();
+        for (Integer key : allServices.keySet()) {
+            if (allServices.get(key).size() > 1) {
+                map.put(key, allServices.get(key));
+            }
+        }
+        return map;
+    }
+
+
+    /**
+     * This method returns the services having only one process
+     *
+     * @return Map(service, [processes]);
+     */
+    public Map<Integer, ArrayList<UUID>> getServicesSingle() {
+        Map<Integer, ArrayList<UUID>> map = new HashMap<Integer, ArrayList<UUID>>();
+        for (Integer key : allServices.keySet()) {
+            if (allServices.get(key).size() == 1) {
+                map.put(key, allServices.get(key));
+            }
+        }
+        return map;
     }
 }

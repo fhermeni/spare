@@ -1,8 +1,10 @@
-package btrplace.model.constraint;
+package btrplace.evaluation;
 
 import btrplace.model.DefaultModel;
 import btrplace.model.Model;
 import btrplace.model.SatConstraint;
+import btrplace.model.constraint.Lonely;
+import btrplace.model.constraint.Spread;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.solver.SolverException;
@@ -35,7 +37,7 @@ public class TestGoogleTraceDataB {
         TraceReader tr = new TraceReader(filepath + "model_" + file,
                 filepath + "assignment_" + file);
         tr.readModel();
-        tr.readAssigment();
+        tr.readAssignment();
         log.info("\n" + tr.summary());
         Model model = new DefaultModel(tr.getMapping());
         for (ShareableResource sr : tr.getShareableResources()) {
@@ -45,8 +47,7 @@ public class TestGoogleTraceDataB {
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         int i = 0;
         for (Integer key : tr.getAllServices().keySet()) {
-            ArrayList<UUID> uuids = tr.getAllServices().get(key);
-            Set<UUID> vmSet = new HashSet<UUID>(uuids);
+            Set<UUID> vmSet = tr.getAllServices().get(key);
             Spread spread = new Spread(vmSet, true);
             constraints.add(spread);
             if (i++ > 5) break;

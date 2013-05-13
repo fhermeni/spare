@@ -1,4 +1,4 @@
-package btrplace.model.constraint;
+package btrplace.evaluation;
 
 import btrplace.model.DefaultMapping;
 import btrplace.model.Mapping;
@@ -19,10 +19,10 @@ import java.util.*;
 public class TraceReader {
 
     private String model_file;
-    private String assigment_file;
+    private String assignment_file;
     private int number_resources, number_of_nodes, number_of_services, number_of_vm, number_of_balance_cost;
-    private Map<Integer, ArrayList<UUID>> neighbors;
-    private Map<Integer, ArrayList<UUID>> locations;
+    private Map<Integer, Set<UUID>> neighbors;
+    private Map<Integer, Set<UUID>> locations;
     private ArrayList<Integer> spreadMin;
     private ArrayList<Integer> process_move_costs;
     private Map<Integer, ArrayList<Integer>> map_service_depend;
@@ -34,15 +34,15 @@ public class TraceReader {
     private ArrayList<UUID> nodes;
     private ArrayList<UUID> vms;
     private ArrayList<ShareableResource> shareableResources;
-    private Map<Integer, ArrayList<UUID>> allServices;
-    private Map<Integer, Integer> assigment;
+    private Map<Integer, Set<UUID>> allServices;
+    private Map<Integer, Integer> assignment;
     private Mapping mapping;
     private int services_non_unit;
     private int max_per_service;
 
     public TraceReader(String model, String assignmentPath) throws IOException {
         model_file = model;
-        assigment_file = assignmentPath;
+        assignment_file = assignmentPath;
         number_resources = 0;
         number_of_nodes = 0;
         number_of_services = 0;
@@ -52,34 +52,34 @@ public class TraceReader {
         resource_properties = new HashMap<Integer, ArrayList<Integer>>();
         nodes = new ArrayList<UUID>();
         vms = new ArrayList<UUID>();
-        neighbors = new HashMap<Integer, ArrayList<UUID>>();
-        locations = new HashMap<Integer, ArrayList<UUID>>();
+        neighbors = new HashMap<Integer, Set<UUID>>();
+        locations = new HashMap<Integer, Set<UUID>>();
         spreadMin = new ArrayList<Integer>();
         process_move_costs = new ArrayList<Integer>();
         map_service_depend = new HashMap<Integer, ArrayList<Integer>>();
-        allServices = new HashMap<Integer, ArrayList<UUID>>();
+        allServices = new HashMap<Integer, Set<UUID>>();
         balance_triple = new HashMap<Integer, ArrayList<Integer>>();
         costs = new ArrayList<Integer>(4);
-        assigment = new HashMap<Integer, Integer>();
+        assignment = new HashMap<Integer, Integer>();
         mapping = new DefaultMapping();
         services_non_unit = 0;
         max_per_service = 0;
     }
 
-    public String getAssigment_file() {
-        return assigment_file;
+    public String getAssignment_file() {
+        return assignment_file;
     }
 
     public Map<Integer, ArrayList<Integer>> getResource_properties() {
         return resource_properties;
     }
 
-    public ArrayList<UUID> getVms() {
-        return vms;
+    public Set<UUID> getVms() {
+        return new HashSet<UUID>(vms);
     }
 
-    public Map<Integer, Integer> getAssigment() {
-        return assigment;
+    public Map<Integer, Integer> getAssignment() {
+        return assignment;
     }
 
     public Mapping getMapping() {
@@ -118,7 +118,7 @@ public class TraceReader {
                     if (neighbors.containsKey(nid)) {
                         neighbors.get(nid).add(nodej);
                     } else {
-                        ArrayList<UUID> uuids = new ArrayList<UUID>();
+                        Set<UUID> uuids = new HashSet<UUID>();
                         uuids.add(nodej);
                         neighbors.put(nid, uuids);
                     }
@@ -129,7 +129,7 @@ public class TraceReader {
                     if (locations.containsKey(lid)) {
                         locations.get(lid).add(nodej);
                     } else {
-                        ArrayList<UUID> uuids = new ArrayList<UUID>();
+                        Set<UUID> uuids = new HashSet<UUID>();
                         uuids.add(nodej);
                         locations.put(lid, uuids);
                     }
@@ -155,7 +155,7 @@ public class TraceReader {
             max_per_service += dependOn;
             if (dependOn > 0) {
                 services_non_unit++;
-                ArrayList depend_list = new ArrayList<Integer>();
+                ArrayList<Integer> depend_list = new ArrayList<Integer>();
                 while (service.hasMoreTokens()) {
                     depend_list.add(Integer.parseInt(service.nextToken()));
                 }
@@ -177,10 +177,10 @@ public class TraceReader {
 
                 int service_id = Integer.parseInt(vm_spec.nextToken());
                 if (allServices.containsKey(service_id)) {
-                    ArrayList<UUID> contain_vms = allServices.get(service_id);
+                    Set<UUID> contain_vms = allServices.get(service_id);
                     contain_vms.add(vm);
                 } else {
-                    ArrayList<UUID> contain_vms = new ArrayList<UUID>();
+                    Set<UUID> contain_vms = new HashSet<UUID>();
                     contain_vms.add(vm);
                     allServices.put(service_id, contain_vms);
                 }
@@ -223,32 +223,21 @@ public class TraceReader {
         br.close();
     }
 
-    public void readAssigment() throws IOException {
-//        Map<Integer, ArrayList<Integer>> node_assigment = new HashMap<Integer, ArrayList<Integer>>();
-        BufferedReader br = new BufferedReader(new FileReader(assigment_file));
+    public void readAssignment() throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(assignment_file));
         String line;
         while ((line = br.readLine()) != null) {
             StringTokenizer st = new StringTokenizer(line);
             int i = 0;
             while (st.hasMoreTokens()) {
                 int host = Integer.parseInt(st.nextToken());
-                assigment.put(i, host);
+                assignment.put(i, host);
                 mapping.addRunningVM(vms.get(i), nodes.get(host));
 
-                /*if(!node_assigment.containsKey(host)) {
-                    ArrayList<Integer> listvm = new ArrayList<Integer>();
-                    listvm.add(i);
-                    node_assigment.put(host, listvm);
-                }
-                else {
-                    node_assigment.get(host).add(i);
-                }*/
+
                 i++;
             }
         }
-       /* for (Integer key : node_assigment.keySet()) {
-            System.out.println("node " + key + " contain VMs:" + node_assigment.get(key));
-        }*/
     }
 
     @Override
@@ -297,8 +286,8 @@ public class TraceReader {
 
         sb.append("Assignment:\n");
 
-        for (Integer key : assigment.keySet()) {
-            sb.append(key + "=" + assigment.get(key) + "\n");
+        for (Integer key : assignment.keySet()) {
+            sb.append(key + "=" + assignment.get(key) + "\n");
         }
 
         return sb.toString();
@@ -336,7 +325,7 @@ public class TraceReader {
     public String summary() {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("Number of:\nNodes: %d\nResources: %d\nVMs: %d\nServices: %d\n" +
-                "Neighborhoods: %d\nLocation: %d\nDependences: %d\nBalance costs: %d\n",
+                "Neighborhoods: %d\nLocation: %d\nDependencies: %d\nBalance costs: %d\n",
                 number_of_nodes, number_resources, number_of_vm, getServicesSpread().size(), neighbors.size(),
                 locations.size(), max_per_service, number_of_balance_cost));
         return sb.toString();
@@ -347,8 +336,8 @@ public class TraceReader {
      *
      * @return Set of all nodes
      */
-    public ArrayList<UUID> getNodes() {
-        return nodes;
+    public Set<UUID> getNodes() {
+        return new HashSet<UUID>(nodes);
     }
 
     /**
@@ -356,7 +345,7 @@ public class TraceReader {
      *
      * @return Map of neighbors
      */
-    public Map<Integer, ArrayList<UUID>> getNeighborMap() {
+    public Map<Integer, Set<UUID>> getNeighborMap() {
         return neighbors;
     }
 
@@ -365,7 +354,7 @@ public class TraceReader {
      *
      * @return Map of location
      */
-    public Map<Integer, ArrayList<UUID>> getLocationMap() {
+    public Map<Integer, Set<UUID>> getLocationMap() {
         return locations;
     }
 
@@ -422,7 +411,7 @@ public class TraceReader {
      *
      * @return
      */
-    public Map<Integer, ArrayList<UUID>> getAllServices() {
+    public Map<Integer, Set<UUID>> getAllServices() {
         return allServices;
     }
 
@@ -455,8 +444,8 @@ public class TraceReader {
      *
      * @return Map(service, [processes]);
      */
-    public Map<Integer, ArrayList<UUID>> getServicesSpread() {
-        Map<Integer, ArrayList<UUID>> map = new HashMap<Integer, ArrayList<UUID>>();
+    public Map<Integer, Set<UUID>> getServicesSpread() {
+        Map<Integer, Set<UUID>> map = new HashMap<Integer, Set<UUID>>();
         for (Integer key : allServices.keySet()) {
             if (allServices.get(key).size() > 1) {
                 map.put(key, allServices.get(key));
@@ -471,8 +460,8 @@ public class TraceReader {
      *
      * @return Map(service, [processes]);
      */
-    public Map<Integer, ArrayList<UUID>> getServicesSingle() {
-        Map<Integer, ArrayList<UUID>> map = new HashMap<Integer, ArrayList<UUID>>();
+    public Map<Integer, Set<UUID>> getServicesSingle() {
+        Map<Integer, Set<UUID>> map = new HashMap<Integer, Set<UUID>>();
         for (Integer key : allServices.keySet()) {
             if (allServices.get(key).size() == 1) {
                 map.put(key, allServices.get(key));

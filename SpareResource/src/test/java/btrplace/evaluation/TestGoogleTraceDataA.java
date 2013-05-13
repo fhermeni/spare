@@ -1,8 +1,11 @@
-package btrplace.model.constraint;
+package btrplace.evaluation;
 
 import btrplace.model.DefaultModel;
 import btrplace.model.Model;
 import btrplace.model.SatConstraint;
+import btrplace.model.constraint.Gather;
+import btrplace.model.constraint.Offline;
+import btrplace.model.constraint.SplitAmong;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.solver.SolverException;
@@ -35,7 +38,7 @@ public class TestGoogleTraceDataA {
         TraceReader tr = new TraceReader(filename + "model_a1_1.txt",
                 filename + "assignment_a1_1.txt");
         tr.readModel();
-        tr.readAssigment();
+        tr.readAssignment();
         log.info(tr.summary());
 
         Assert.assertEquals(tr.getNumber_of_balance_cost(), 1);
@@ -49,7 +52,7 @@ public class TestGoogleTraceDataA {
         TraceReader tr = new TraceReader(filename + "model_a1_2.txt",
                 filename + "assignment_a1_2.txt");
         tr.readModel();
-        tr.readAssigment();
+        tr.readAssignment();
         log.info(tr.summary());
         Assert.assertEquals(tr.getNumber_resources(), 4);
         Assert.assertEquals(tr.getNumber_of_nodes(), 100);
@@ -63,7 +66,7 @@ public class TestGoogleTraceDataA {
         TraceReader tr = new TraceReader(filename + "model_a1_3.txt",
                 filename + "assignment_a1_3.txt");
         tr.readModel();
-        tr.readAssigment();
+        tr.readAssignment();
         log.info(tr.summary());
         Assert.assertEquals(tr.getNumber_resources(), 3);
         Assert.assertEquals(tr.getNumber_of_nodes(), 100);
@@ -77,7 +80,7 @@ public class TestGoogleTraceDataA {
         TraceReader tr = new TraceReader(filename + "model_a1_4.txt",
                 filename + "assignment_a1_4.txt");
         tr.readModel();
-        tr.readAssigment();
+        tr.readAssignment();
         log.info(tr.summary());
         Assert.assertEquals(tr.getNumber_resources(), 3);
         Assert.assertEquals(tr.getNumber_of_nodes(), 50);
@@ -91,7 +94,7 @@ public class TestGoogleTraceDataA {
         TraceReader tr = new TraceReader(filename + "model_a1_5.txt",
                 filename + "assignment_a1_5.txt");
         tr.readModel();
-        tr.readAssigment();
+        tr.readAssignment();
         log.info(tr.summary());
         Assert.assertEquals(tr.getNumber_resources(), 4);
         Assert.assertEquals(tr.getNumber_of_nodes(), 12);
@@ -105,7 +108,7 @@ public class TestGoogleTraceDataA {
         TraceReader tr = new TraceReader(filename + "model_a1_1.txt",
                 filename + "assignment_a1_1.txt");
         tr.readModel();
-        tr.readAssigment();
+        tr.readAssignment();
         log.info(tr.summary());
         Model model = new DefaultModel(tr.getMapping());
         for (ShareableResource sr : tr.getShareableResources()) {
@@ -115,12 +118,11 @@ public class TestGoogleTraceDataA {
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
 
         for (Integer key : tr.getAllServices().keySet()) {
-            ArrayList<UUID> uuids = tr.getAllServices().get(key);
+            Set<UUID> uuids = tr.getAllServices().get(key);
             System.out.println(uuids);
         }
         for (Integer key : tr.getAllServices().keySet()) {
-            ArrayList<UUID> uuids = tr.getAllServices().get(key);
-            Set<UUID> vmSet = new HashSet<UUID>(uuids);
+            Set<UUID> vmSet = tr.getAllServices().get(key);
             Gather gather = new Gather(vmSet);
             constraints.add(gather);
         }
@@ -149,7 +151,7 @@ public class TestGoogleTraceDataA {
         TraceReader tr = new TraceReader(filename + "model_a1_3.txt",
                 filename + "assignment_a1_3.txt");
         tr.readModel();
-        tr.readAssigment();
+        tr.readAssignment();
         log.info("\n" + tr.summary());
         Model model = new DefaultModel(tr.getMapping());
         for (ShareableResource sr : tr.getShareableResources()) {
@@ -158,7 +160,7 @@ public class TestGoogleTraceDataA {
 
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
 
-        ArrayList<UUID> uuids = tr.getAllServices().get(1);
+        Set<UUID> uuids = tr.getAllServices().get(1);
         Set<Set<UUID>> vmSet = new HashSet<Set<UUID>>();
         vmSet.add(new HashSet<UUID>(uuids));
 //        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(new UUID(1, 1), new UUID(1, 2), new UUID(1, 3)));
@@ -207,7 +209,7 @@ public class TestGoogleTraceDataA {
         TraceReader tr = new TraceReader(filename + "model_a1_3.txt",
                 filename + "assignment_a1_3.txt");
         tr.readModel();
-        tr.readAssigment();
+        tr.readAssignment();
         log.info("\n" + tr.summary());
         Model model = new DefaultModel(tr.getMapping());
         for (ShareableResource sr : tr.getShareableResources()) {
@@ -216,15 +218,13 @@ public class TestGoogleTraceDataA {
 
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
 
-        ArrayList<UUID> vmset1 = tr.getAllServices().get(1);
-//        ArrayList<UUID> vmset2 = tr.getAllServices().get(2);
+        Set<UUID> vmset1 = tr.getAllServices().get(1);
         Set<Set<UUID>> vmSet = new HashSet<Set<UUID>>();
-        vmSet.add(new HashSet<UUID>(vmset1));
-//        vmSet.add(new HashSet<UUID>(vmset2));
+        vmSet.add(vmset1);
 //        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(new UUID(1, 1), new UUID(1, 2), new UUID(1, 3)));
         Set<Set<UUID>> nodes = new HashSet<Set<UUID>>();
-        nodes.add(new HashSet<UUID>(tr.getNeighborMap().get(1)));
-        nodes.add(new HashSet<UUID>(tr.getNeighborMap().get(2)));
+        nodes.add(tr.getNeighborMap().get(1));
+        nodes.add(tr.getNeighborMap().get(2));
 
         SplitAmong sa = new SplitAmong(vmSet, nodes);
         constraints.add(sa);
@@ -270,7 +270,7 @@ public class TestGoogleTraceDataA {
         TraceReader tr = new TraceReader(filename + "model_a1_3.txt",
                 filename + "assignment_a1_3.txt");
         tr.readModel();
-        tr.readAssigment();
+        tr.readAssignment();
         log.info("\n" + tr.summary());
         Model model = new DefaultModel(tr.getMapping());
         for (ShareableResource sr : tr.getShareableResources()) {
@@ -279,15 +279,13 @@ public class TestGoogleTraceDataA {
 
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
 
-        ArrayList<UUID> vmset1 = tr.getAllServices().get(1);
-//        ArrayList<UUID> vmset2 = tr.getAllServices().get(2);
+        Set<UUID> vmset1 = tr.getAllServices().get(1);
         Set<Set<UUID>> vmSet = new HashSet<Set<UUID>>();
-        vmSet.add(new HashSet<UUID>(vmset1));
-//        vmSet.add(new HashSet<UUID>(vmset2));
+        vmSet.add(vmset1);
 //        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(new UUID(1, 1), new UUID(1, 2), new UUID(1, 3)));
         Set<Set<UUID>> nodes = new HashSet<Set<UUID>>();
-        nodes.add(new HashSet<UUID>(tr.getNeighborMap().get(1)));
-        nodes.add(new HashSet<UUID>(tr.getNeighborMap().get(2)));
+        nodes.add(tr.getNeighborMap().get(1));
+        nodes.add(tr.getNeighborMap().get(2));
 
         SplitAmong sa = new SplitAmong(vmSet, nodes);
         constraints.add(sa);

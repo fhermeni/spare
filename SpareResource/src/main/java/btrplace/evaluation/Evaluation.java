@@ -24,8 +24,6 @@ public class Evaluation {
     private Model model;
     private Set<SatConstraint> dis_cstr;
     private Set<SatConstraint> cont_cstr;
-    private ReconfigurationPlan dis_plan;
-    private ReconfigurationPlan cont_plan;
 
     public Evaluation(Model m, Set<SatConstraint> d, Set<SatConstraint> c) {
         model = m;
@@ -36,30 +34,83 @@ public class Evaluation {
 
     public void evaluate() throws SolverException {
         log.info("Evaluate:");
+        model = fixDiscreteModel();
+        log.info("Successfully fix origin model");
+        log.info(model.toString());
         Model clone = model.clone();
+
         Random rand = new Random();
-        int p = model.getMapping().getAllNodes().size() * 10 / 100;
+        int node_size = model.getMapping().getAllNodes().size();
         Set<Offline> offs = new HashSet<Offline>();
-        for (int i = 1; i <= p; i++) {
-            int randomId = rand.nextInt(100);
-            log.info("Shutdown node: " + randomId);
-            Offline offline = new Offline(new HashSet<UUID>(Arrays.asList(new UUID(1, randomId))));
+        Set<Integer> offIds = new HashSet<Integer>(node_size);
+        int randomId;
+        for (int i = 0; i < node_size; i++) {
+
+            do {
+                randomId = rand.nextInt(node_size);
+            }
+            while (offIds.contains(randomId));
+            offIds.add(randomId);
+
+            log.info("Event: Shutdown node: " + randomId);
+
+            UUID n = new UUID(1, randomId);
+            Offline offline = new Offline(new HashSet<UUID>(Arrays.asList(n)));
             offs.add(offline);
+
             dis_cstr.add(offline);
-            dis_plan = cra.solve(model, dis_cstr);
-            log.info(dis_plan.toString());
-            if (!satisfied(dis_plan)) {
-                cont_cstr.addAll(offs);
-                cont_plan = cra.solve(clone, cont_cstr);
-                analyze(dis_plan, cont_plan);
+
+            ReconfigurationPlan dis_plan = cra.solve(model, dis_cstr);
+            if (dis_plan != null) {
+                if (!satisfiedContinuous(dis_plan)) {
+                    cont_cstr.addAll(offs);
+                    ReconfigurationPlan cont_plan = cra.solve(clone, cont_cstr);
+                    if (cont_plan != null) {
+                        log.info("Found continuous plan");
+                        analyze(dis_plan, cont_plan);
+                    } else log.info("Not found continuous plan");
+                    break;
+                } else {
+                    log.info("Discrete plan satisfies Continuous");
+                }
+            } else {
+                log.info("Not found discrete plan");
             }
         }
     }
 
-    private boolean satisfied(ReconfigurationPlan plan) {
-        for (SatConstraint c : cont_cstr) {
-            if (c.isSatisfied(plan) != SatConstraint.Sat.SATISFIED) {
+    private Model fixDiscreteModel() {
+        try {
+            ReconfigurationPlan p = cra.solve(model, dis_cstr);
+            if (satisfiedDiscrete(p)) {
+                return p.getResult();
+            } else
+                throw new SolverException(model, "Cannot find the reconfiguration plan");
+        } catch (SolverException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        return null;
+    }
+
+    private boolean satisfiedDiscrete(ReconfigurationPlan plan) {
+        for (SatConstraint c : dis_cstr) {
+            if (c.isSatisfied(plan.getResult()) != SatConstraint.Sat.SATISFIED) {
                 return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean satisfiedContinuous(ReconfigurationPlan plan) {
+        for (SatConstraint c : cont_cstr) {
+            if (c.isContinuous()) {
+                if (c.isSatisfied(plan) != SatConstraint.Sat.SATISFIED) {
+                    return false;
+                }
+            } else {
+                if (c.isSatisfied(plan.getResult()) != SatConstraint.Sat.SATISFIED) {
+                    return false;
+                }
             }
         }
         return true;
@@ -67,9 +118,9 @@ public class Evaluation {
 
     public void analyze(ReconfigurationPlan d, ReconfigurationPlan c) {
         log.info("Analyze:");
-        log.info("{} {}", d.getDuration(), c.getDuration());
-        log.info("{} {}", d.getSize(), c.getSize());
-        log.info("{} {}", getNumberOfDelayedAction(d), getNumberOfDelayedAction(c));
+        log.info("Duration: {} {}", d.getDuration(), c.getDuration());
+        log.info("N. Action: {} {}", d.getSize(), c.getSize());
+        log.info("N. delay Acts: {} {}", getNumberOfDelayedAction(d), getNumberOfDelayedAction(c));
     }
 
     public int getNumberOfDelayedAction(ReconfigurationPlan plan) {

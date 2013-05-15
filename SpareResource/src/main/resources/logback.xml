@@ -3,7 +3,7 @@
         <file>testOutput.log</file>
         <append>false</append>
         <encoder>
-            <pattern>%msg%n</pattern>
+            <pattern>%-4relative [%thread] %-5level %logger{35} - %msg %n</pattern>
         </encoder>
     </appender>
 
@@ -17,5 +17,6 @@
 
     <root level="INFO">
         <appender-ref ref="fileAppender"/>
+        <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

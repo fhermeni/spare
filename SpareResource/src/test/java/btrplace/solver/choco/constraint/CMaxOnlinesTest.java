@@ -1,11 +1,10 @@
 package btrplace.solver.choco.constraint;
 
-import btrplace.model.*;
-import btrplace.model.SatConstraint.Sat;
-import btrplace.model.constraint.MaxOnlines;
-import btrplace.model.constraint.Offline;
-import btrplace.model.constraint.Online;
-import btrplace.model.constraint.Overbook;
+import btrplace.model.DefaultMapping;
+import btrplace.model.DefaultModel;
+import btrplace.model.Mapping;
+import btrplace.model.Model;
+import btrplace.model.constraint.*;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.BootNode;
@@ -16,12 +15,16 @@ import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
 import btrplace.solver.choco.durationEvaluator.ConstantDuration;
 import btrplace.test.PremadeElements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
 public class CMaxOnlinesTest implements PremadeElements {
+
+    private static final Logger log = LoggerFactory.getLogger("TEST");
 
     @Test(timeOut = 10000)
     public void discreteMaxonlinesTest() throws SolverException {
@@ -37,9 +40,11 @@ public class CMaxOnlinesTest implements PremadeElements {
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(maxon.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(model.toString());
+        log.info(constraints.toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(maxon.isSatisfied(plan.getResult()));
     }
 
     @Test(timeOut = 10000)
@@ -68,10 +73,12 @@ public class CMaxOnlinesTest implements PremadeElements {
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(maxon.isSatisfied(plan.getResult()), Sat.SATISFIED);
-        Assert.assertEquals(maxon.isSatisfied(plan), Sat.UNSATISFIED);
+        log.info(model.toString());
+        log.info(constraints.toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(maxon.isSatisfied(plan.getResult()));
+        Assert.assertFalse(maxon.isSatisfied(plan));
     }
 
     @Test(timeOut = 10000)
@@ -96,9 +103,11 @@ public class CMaxOnlinesTest implements PremadeElements {
         cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(maxon.isSatisfied(plan), Sat.SATISFIED);
+        log.info(model.toString());
+        log.info(constraints.toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(maxon.isSatisfied(plan));
     }
 
 
@@ -125,9 +134,11 @@ public class CMaxOnlinesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(maxon.isSatisfied(plan), Sat.SATISFIED);
+        log.info(model.toString());
+        log.info(constraints.toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(maxon.isSatisfied(plan));
     }
 
     @Test(timeOut = 30000)
@@ -160,9 +171,9 @@ public class CMaxOnlinesTest implements PremadeElements {
         cra.setMaxEnd(10);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(maxon.isSatisfied(plan), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(maxon.isSatisfied(plan));
     }
 
     @Test(timeOut = 10000)
@@ -187,10 +198,10 @@ public class CMaxOnlinesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(maxon.isSatisfied(plan.getResult()), Sat.SATISFIED);
-        Assert.assertEquals(maxon.isSatisfied(plan), Sat.UNSATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(maxon.isSatisfied(plan.getResult()));
+        Assert.assertFalse(maxon.isSatisfied(plan));
     }
 
     @Test(timeOut = 60000)
@@ -215,9 +226,9 @@ public class CMaxOnlinesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(maxon.isSatisfied(plan), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(maxon.isSatisfied(plan));
     }
 
     @Test(timeOut = 10000)
@@ -247,10 +258,10 @@ public class CMaxOnlinesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(maxon.isSatisfied(plan.getResult()), Sat.SATISFIED);
-        Assert.assertEquals(maxon.isSatisfied(plan), Sat.UNSATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(maxon.isSatisfied(plan.getResult()));
+        Assert.assertFalse(maxon.isSatisfied(plan));
     }
 
     @Test
@@ -284,9 +295,9 @@ public class CMaxOnlinesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(maxon.isSatisfied(plan), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(maxon.isSatisfied(plan));
 
     }
 }

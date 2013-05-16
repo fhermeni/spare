@@ -1,10 +1,13 @@
 package btrplace.solver.choco.constraint;
 
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
 import btrplace.model.constraint.MaxSpareNode;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.solver.SolverException;
-import btrplace.solver.choco.*;
+import btrplace.solver.choco.ReconfigurationProblem;
+import btrplace.solver.choco.Slice;
+import btrplace.solver.choco.actionModel.NodeActionModel;
+import btrplace.solver.choco.actionModel.VMActionModel;
 import choco.cp.solver.CPSolver;
 import choco.cp.solver.constraints.global.scheduling.cumulative.Cumulative;
 import choco.cp.solver.constraints.integer.ElementV;
@@ -47,7 +50,7 @@ public class CMaxSpareNode implements ChocoSatConstraint {
         int NUMBER_OF_NODE = cstr.getInvolvedNodes().size();
         if (cstr.isContinuous()) {
             // The constraint must be already satisfied
-            if (!cstr.isSatisfied(rp.getSourceModel()).equals(SatConstraint.Sat.SATISFIED)) {
+            if (!cstr.isSatisfied(rp.getSourceModel())) {
                 rp.getLogger()
                         .error("The constraint '{}' must be already satisfied to provide a continuous restriction",
                                 cstr);
@@ -98,7 +101,7 @@ public class CMaxSpareNode implements ChocoSatConstraint {
                     }
                     solver.post(new MinOfAList(solver.getEnvironment(), dSlist.toArray(new IntDomainVar[dSlist.size()])));
 
-                    durations[i] = rp.makeDuration("Dur(" + n + ")");
+                    durations[i] = rp.makeUnboundedDuration("Dur(" + n + ")");
                     solver.post(solver.leq(durations[i], rp.getEnd()));
                     heights[i] = solver.makeConstantIntVar(1); // All tasks have to be scheduled
                     taskvars[i] = solver.createTaskVar("Task_" + n, idle_starts[i], idle_ends[i], durations[i]);

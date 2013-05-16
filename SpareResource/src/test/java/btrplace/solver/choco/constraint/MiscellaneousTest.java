@@ -3,11 +3,7 @@ package btrplace.solver.choco.constraint;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
-import btrplace.model.constraint.Ban;
-import btrplace.model.constraint.MaxSpareNode;
-import btrplace.model.constraint.Online;
-import btrplace.model.constraint.Overbook;
+import btrplace.model.constraint.*;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.DefaultReconfigurationPlan;
 import btrplace.plan.ReconfigurationPlan;
@@ -16,8 +12,11 @@ import btrplace.plan.event.MigrateVM;
 import btrplace.plan.event.ShutdownNode;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.*;
+import btrplace.solver.choco.actionModel.NodeActionModel;
 import btrplace.solver.choco.actionModel.ShutdownableNodeModel;
+import btrplace.solver.choco.actionModel.VMActionModel;
 import btrplace.solver.choco.durationEvaluator.ConstantDuration;
+import btrplace.solver.choco.durationEvaluator.DurationEvaluators;
 import btrplace.solver.choco.objective.minMTTR.MinMTTR;
 import btrplace.solver.choco.view.CShareableResource;
 import btrplace.test.PremadeElements;
@@ -30,6 +29,8 @@ import choco.kernel.solver.ContradictionException;
 import choco.kernel.solver.constraints.integer.IntExp;
 import choco.kernel.solver.variables.integer.IntDomainVar;
 import choco.kernel.solver.variables.scheduling.TaskVar;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -38,13 +39,13 @@ import java.util.*;
 import static btrplace.solver.choco.chocoUtil.ChocoUtils.postIfOnlyIf;
 
 /**
- * Created with IntelliJ IDEA.
  * User: TU HUYNH DANG
  * Date: 4/10/13
  * Time: 9:07 AM
- * To change this template use File | Settings | File Templates.
  */
 public class MiscellaneousTest implements PremadeElements {
+    private static final Logger log = LoggerFactory.getLogger("TEST");
+
     @Test
     public void testPlanwithConcurrentActions() {
         Mapping map = new MappingBuilder().on(n1, n2)
@@ -70,14 +71,14 @@ public class MiscellaneousTest implements PremadeElements {
         plan.add(killVM);
 //        plan.add(bootNode);
         Assert.assertTrue(plan.isApplyable());
-        System.out.println(plan);
+        log.info(plan.toString());
 
         MaxSpareNode msn = new MaxSpareNode(map.getAllNodes(), 0, true);
         Assert.assertEquals(killVM.getStart(), 0);
         Assert.assertEquals(killVM.getEnd(), 2);
         Assert.assertEquals(migrateVM.getStart(), 0);
         Assert.assertEquals(migrateVM.getEnd(), 2);
-        Assert.assertEquals(msn.isSatisfied(plan), SatConstraint.Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan));
     }
 
 
@@ -113,9 +114,9 @@ public class MiscellaneousTest implements PremadeElements {
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);
-        System.out.println(plan);
-        System.out.println(plan.getResult());
-        Assert.assertEquals(msn.isSatisfied(plan), SatConstraint.Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
+        Assert.assertTrue(msn.isSatisfied(plan));
     }
 
     @Test
@@ -148,9 +149,9 @@ public class MiscellaneousTest implements PremadeElements {
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);
-        System.out.println(plan);
-        System.out.println(plan.getResult());
-        Assert.assertEquals(msn.isSatisfied(plan), SatConstraint.Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
+        Assert.assertTrue(msn.isSatisfied(plan));
     }
 
     @Test
@@ -176,9 +177,9 @@ public class MiscellaneousTest implements PremadeElements {
         sd.getState().setVal(0);
         sd.getStart().setVal(3);
 
-        ReconfigurationPlan p = rp.solve(0, false);
-        Assert.assertNotNull(p);
-        System.out.println(p);
+        ReconfigurationPlan plan = rp.solve(0, false);
+        Assert.assertNotNull(plan);
+        log.info(plan.toString());
         Assert.assertEquals(sd.getHostingStart().getVal(), 0);
         Assert.assertEquals(sd.getStart().getVal(), 3);
         Assert.assertEquals(sd.getEnd().getVal(), 6);
@@ -274,7 +275,7 @@ public class MiscellaneousTest implements PremadeElements {
             }
             s.post(new MinOfAList(s.getEnvironment(), dSlist.toArray(new IntDomainVar[dSlist.size()])));
 
-            durations[i] = rp.makeDuration("Dur(" + n + ")");
+            durations[i] = rp.makeUnboundedDuration("Dur(" + n + ")");
             s.post(s.leq(durations[i], rp.getEnd()));
             heights[i] = s.makeConstantIntVar(1); // All tasks have to be scheduled
             taskvars[i] = s.createTaskVar("Task_" + n, idle_starts[i], idle_ends[i], durations[i]);
@@ -324,8 +325,8 @@ public class MiscellaneousTest implements PremadeElements {
         obj.inject(rp);
         ReconfigurationPlan plan = rp.solve(0, false);
         Assert.assertNotNull(plan);
-        System.out.println(plan);
-        System.out.println(plan.getResult());
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
 
     }
 }

@@ -3,11 +3,10 @@ package btrplace.solver.choco.constraint;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
-import btrplace.model.SatConstraint.Sat;
 import btrplace.model.constraint.MinSpareResources;
 import btrplace.model.constraint.Overbook;
 import btrplace.model.constraint.Running;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.solver.SolverException;
@@ -15,12 +14,16 @@ import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
 import btrplace.test.PremadeElements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
 public class CMinSpareResourcesTest implements PremadeElements {
+
+    private static final Logger log = LoggerFactory.getLogger("TEST");
 
     @Test(timeOut = 10000)
     public void testCMinSpareResourcesDiscrete() throws SolverException {
@@ -51,9 +54,9 @@ public class CMinSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     @Test(timeOut = 10000)
@@ -87,9 +90,9 @@ public class CMinSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     public void testdiscreteCMinSpareResourcesWithOverbookRatio2() throws SolverException {
@@ -122,8 +125,8 @@ public class CMinSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
 
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
     }
 
     @Test(timeOut = 10000)
@@ -177,9 +180,9 @@ public class CMinSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan);
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
+        log.info(plan.getResult().getMapping().toString());
     }
 
     @Test(timeOut = 10000)
@@ -219,9 +222,9 @@ public class CMinSpareResourcesTest implements PremadeElements {
         ReconfigurationPlan plan = cra.solve(mo, l);
 
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
 
     }
 
@@ -258,7 +261,7 @@ public class CMinSpareResourcesTest implements PremadeElements {
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.getResult().getMapping().toString());
     }
 
     @Test(timeOut = 10000)
@@ -296,7 +299,7 @@ public class CMinSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.getResult().getMapping().toString());
     }
 
     @Test(timeOut = 10000)
@@ -335,7 +338,7 @@ public class CMinSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.getResult().getMapping().toString());
     }
 
 }

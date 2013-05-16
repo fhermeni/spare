@@ -3,11 +3,10 @@ package btrplace.solver.choco.constraint;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
-import btrplace.model.SatConstraint.Sat;
 import btrplace.model.constraint.Killed;
 import btrplace.model.constraint.MaxSpareResources;
 import btrplace.model.constraint.Overbook;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.ShutdownNode;
@@ -17,12 +16,16 @@ import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
 import btrplace.solver.choco.durationEvaluator.ConstantDuration;
 import btrplace.test.PremadeElements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
 public class CMaxSpareResourcesTest implements PremadeElements {
+
+    private static final Logger log = LoggerFactory.getLogger("TEST");
 
     @Test
     public void testCMaxSpareResourcesDiscrete1() throws SolverException {
@@ -53,10 +56,10 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.getOrigin().getMapping().toString());
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.getOrigin().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     @Test
@@ -93,10 +96,10 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.getOrigin().getMapping().toString());
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.getOrigin().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     @Test
@@ -128,10 +131,10 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.getOrigin().getMapping().toString());
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.getOrigin().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     @Test
@@ -162,8 +165,8 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan);
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     @Test(enabled = false)
@@ -198,10 +201,10 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Assert.assertNotNull(plan);
         Assert.assertEquals(rc.get(vm3), 1);
-        System.out.println(plan.getOrigin().getMapping().toString());
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.getOrigin().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     @Test(enabled = false)
@@ -241,9 +244,9 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         ReconfigurationPlan plan = cra.solve(mo, l);
 
         Assert.assertNotNull(plan);
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
-        System.out.println(plan.getOrigin().getMapping().toString());
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
+        log.info(plan.getOrigin().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
     }
 }

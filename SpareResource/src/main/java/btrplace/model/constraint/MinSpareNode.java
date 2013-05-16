@@ -2,9 +2,8 @@ package btrplace.model.constraint;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
-import btrplace.plan.Action;
 import btrplace.plan.ReconfigurationPlan;
+import btrplace.plan.event.Action;
 
 import java.util.*;
 
@@ -71,7 +70,7 @@ public class MinSpareNode extends SatConstraint {
     }
 
     @Override
-    public Sat isSatisfied(Model i) {
+    public boolean isSatisfied(Model i) {
 
         Mapping map = i.getMapping();
 
@@ -85,14 +84,14 @@ public class MinSpareNode extends SatConstraint {
                 idle_nodes.remove(n);
             }
             if (idle_nodes.size() < qty)
-                return Sat.UNSATISFIED;
+                return false;
         }
-        return Sat.SATISFIED;
+        return true;
 
     }
 
     @Override
-    public Sat isSatisfied(ReconfigurationPlan p) {
+    public boolean isSatisfied(ReconfigurationPlan p) {
         Model mo = p.getOrigin().clone();
         Action[] actions = new Action[p.getSize()];
         int idx = 0;
@@ -108,13 +107,13 @@ public class MinSpareNode extends SatConstraint {
             boolean[] idle_start = checkIdle(mo, getInvolvedNodes());
 
             if (!actions[k].apply(mo)) {
-                return Sat.UNSATISFIED;
+                return false;
             }
 
             if (cActions.containsKey(k)) {
                 for (Integer m : cActions.get(k)) {
                     if (!actions[m].apply(mo)) {
-                        return Sat.UNSATISFIED;
+                        return false;
                     }
                     skip.add(m);
                 }
@@ -127,10 +126,10 @@ public class MinSpareNode extends SatConstraint {
                 if ((idle_start[j]) && (idle_end[j])) nidle++;
             }
             if (nidle < getAmount()) {
-                return Sat.UNSATISFIED;
+                return false;
             }
         }
-        return Sat.SATISFIED;
+        return true;
     }
 
     private Map<Integer, ArrayList<Integer>> concurrent(ReconfigurationPlan p) {

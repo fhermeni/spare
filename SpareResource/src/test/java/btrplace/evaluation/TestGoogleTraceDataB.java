@@ -2,15 +2,14 @@ package btrplace.evaluation;
 
 import btrplace.model.DefaultModel;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
 import btrplace.model.constraint.Lonely;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.model.constraint.Spread;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -19,15 +18,13 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Created with IntelliJ IDEA.
  * User: TU HUYNH DANG
  * Date: 5/3/13
  * Time: 3:19 PM
- * To change this template use File | Settings | File Templates.
  */
 public class TestGoogleTraceDataB {
 
-    private static final Logger log = LoggerFactory.getLogger(TestGoogleTraceDataB.class.getPackage().getName());
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger("TestTraceReader");
     private final String filepath = "/user/hdang/home/Downloads/google_trace/dataB/";
 
     @Test
@@ -64,9 +61,9 @@ public class TestGoogleTraceDataB {
 
         for (SatConstraint sat : constraints) {
             if (sat.isContinuous()) {
-                Assert.assertEquals(sat.isSatisfied(plan), SatConstraint.Sat.SATISFIED);
+                Assert.assertTrue(sat.isSatisfied(plan));
             } else {
-                Assert.assertEquals(sat.isSatisfied(plan.getResult()), SatConstraint.Sat.SATISFIED);
+                Assert.assertTrue(sat.isSatisfied(plan.getResult()));
             }
         }
         Model result = plan.getResult();

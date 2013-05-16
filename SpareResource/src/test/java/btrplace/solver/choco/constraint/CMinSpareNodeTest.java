@@ -3,12 +3,7 @@ package btrplace.solver.choco.constraint;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
-import btrplace.model.SatConstraint.Sat;
-import btrplace.model.constraint.MinSpareNode;
-import btrplace.model.constraint.Online;
-import btrplace.model.constraint.Overbook;
-import btrplace.model.constraint.Running;
+import btrplace.model.constraint.*;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.BootNode;
@@ -58,7 +53,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
     @Test(timeOut = 10000)
@@ -93,7 +88,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
     @Test(timeOut = 10000)
@@ -126,7 +121,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
     @Test(timeOut = 10000)
@@ -160,7 +155,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
     @Test(timeOut = 10000)
@@ -197,7 +192,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan));
     }
 
     @Test(timeOut = 10000)
@@ -229,7 +224,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         //cra.setVerbosity(2);
         cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan));
         System.out.println(plan);
         System.out.println(plan.getResult());
 //        Assert.fail();
@@ -269,7 +264,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan));
         System.out.println(plan);
         System.out.println(plan.getResult());
     }
@@ -308,7 +303,7 @@ public class CMinSpareNodeTest implements PremadeElements {
 //        //cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan));
         System.out.println(plan);
         System.out.println(plan.getResult());
     }
@@ -347,7 +342,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         //cra.setVerbosity(2);
         cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan));
         System.out.println(plan);
         System.out.println(plan.getResult());
     }
@@ -386,7 +381,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         //cra.setVerbosity(2);
         cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan));
         System.out.println(plan);
         System.out.println(plan.getResult());
     }
@@ -434,7 +429,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         Assert.assertNotNull(plan);
         System.out.println(plan.toString());
         System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan), SatConstraint.Sat.SATISFIED);
-        Assert.assertEquals(minSpareNode.isSatisfied(plan), SatConstraint.Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(plan));
+        Assert.assertTrue(minSpareNode.isSatisfied(plan));
     }
 }

@@ -2,16 +2,15 @@ package btrplace.evaluation;
 
 import btrplace.model.DefaultModel;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
 import btrplace.model.constraint.Gather;
 import btrplace.model.constraint.Offline;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.model.constraint.SplitAmong;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -21,14 +20,13 @@ import java.util.*;
 
 
 /**
- * Created with IntelliJ IDEA.
  * User: TU HUYNH DANG
  * Date: 5/2/13
  * Time: 2:41 PM
- * To change this template use File | Settings | File Templates.
  */
 public class TestGoogleTraceDataA {
-    private static final Logger log = LoggerFactory.getLogger(TestGoogleTraceDataA.class.getPackage().getName());
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger("TestTraceReader");
     private final String filename = "/user/hdang/home/Downloads/google_trace/dataA/";
     private static Model intermediateModel;
 
@@ -136,7 +134,7 @@ public class TestGoogleTraceDataA {
         Model result = plan.getResult();
         for (SatConstraint sat : constraints) {
             Gather gather = (Gather) sat;
-            Assert.assertEquals(gather.isSatisfied(result), SatConstraint.Sat.SATISFIED);
+            Assert.assertTrue(gather.isSatisfied(result));
         }
         Assert.assertEquals(model.equals(result), false);
 
@@ -254,8 +252,8 @@ public class TestGoogleTraceDataA {
         Assert.assertEquals(plan.getOrigin().equals(plan.getResult()), false);
         log.info("\nNumber of actions: " + plan.getSize());
         log.info("\n" + plan.toString());
-        Assert.assertEquals(sa.isSatisfied(plan.getResult()), SatConstraint.Sat.SATISFIED);
-        Assert.assertEquals(sa.isSatisfied(plan), SatConstraint.Sat.SATISFIED);
+        Assert.assertTrue(sa.isSatisfied(plan.getResult()));
+        Assert.assertTrue(sa.isSatisfied(plan));
     }
 
     /**
@@ -299,7 +297,7 @@ public class TestGoogleTraceDataA {
 
         intermediateModel = plan.getResult();
         Assert.assertEquals(model.equals(intermediateModel), false);
-        Assert.assertEquals(sa.isSatisfied(plan.getResult()), SatConstraint.Sat.SATISFIED);
+        Assert.assertTrue(sa.isSatisfied(plan.getResult()));
         log.info("\nNumber of actions: " + plan.getSize());
         log.info("\n" + plan.toString());
 
@@ -315,6 +313,6 @@ public class TestGoogleTraceDataA {
         Assert.assertEquals(plan.getOrigin().equals(plan.getResult()), false);
         log.info("\nNumber of actions: " + plan.getSize());
         log.info("\n" + plan.toString());
-        Assert.assertEquals(sa.isSatisfied(plan), SatConstraint.Sat.SATISFIED);
+        Assert.assertTrue(sa.isSatisfied(plan));
     }
 }

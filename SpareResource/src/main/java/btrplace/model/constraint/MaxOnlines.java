@@ -1,13 +1,12 @@
 package btrplace.model.constraint;
 
-import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
-import btrplace.plan.Action;
+import btrplace.model.constraint.checker.MaxOnlinesChecker;
+import btrplace.model.constraint.checker.SatConstraintChecker;
 import btrplace.plan.ReconfigurationPlan;
+import btrplace.plan.event.Action;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -59,37 +58,21 @@ public class MaxOnlines extends SatConstraint {
     }
 
     @Override
-    public Sat isSatisfied(Model i) {
-
-        Mapping map = i.getMapping();
-
-        Set<UUID> onnodes = map.getOnlineNodes();
-        Set<UUID> nodes = new HashSet<UUID>(onnodes);
-        nodes.retainAll(getInvolvedNodes());
-
-        if (nodes.size() > qty)
-            return Sat.UNSATISFIED;
-
-        return Sat.SATISFIED;
-
-    }
-
-    @Override
-    public Sat isSatisfied(ReconfigurationPlan p) {
+    public boolean isSatisfied(ReconfigurationPlan p) {
         Model mo = p.getOrigin();
-        if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-            return Sat.UNSATISFIED;
+        if (!isSatisfied(mo)) {
+            return false;
         }
         mo = p.getOrigin().clone();
         for (Action a : p) {
             if (!a.apply(mo)) {
-                return Sat.UNSATISFIED;
+                return false;
             }
-            if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-                return Sat.UNSATISFIED;
+            if (!isSatisfied(mo)) {
+                return false;
             }
         }
-        return Sat.SATISFIED;
+        return true;
     }
 
     @Override
@@ -132,6 +115,11 @@ public class MaxOnlines extends SatConstraint {
         b.append(')');
 
         return b.toString();
+    }
+
+    @Override
+    public SatConstraintChecker getChecker() {
+        return new MaxOnlinesChecker(this);
     }
 
 }

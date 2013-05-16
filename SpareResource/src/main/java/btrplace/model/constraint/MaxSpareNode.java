@@ -2,9 +2,10 @@ package btrplace.model.constraint;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
-import btrplace.plan.Action;
+import btrplace.model.constraint.checker.MaxSpareNodeChecker;
+import btrplace.model.constraint.checker.SatConstraintChecker;
 import btrplace.plan.ReconfigurationPlan;
+import btrplace.plan.event.Action;
 
 import java.util.*;
 
@@ -71,30 +72,8 @@ public class MaxSpareNode extends SatConstraint {
         return qty;
     }
 
-    @Override
-    public Sat isSatisfied(Model i) {
 
-        Mapping map = i.getMapping();
-
-        Set<UUID> onnodes = map.getOnlineNodes();
-        Set<UUID> nodes = new HashSet<UUID>(onnodes);
-        nodes.retainAll(getInvolvedNodes());
-        Set<UUID> idle_nodes = new HashSet<UUID>();
-
-        for (UUID n : nodes) {
-            if (map.getRunningVMs(n).isEmpty()) {
-                idle_nodes.add(n);
-            }
-            if (idle_nodes.size() > qty) {
-                return Sat.UNSATISFIED;
-            }
-        }
-        return Sat.SATISFIED;
-
-    }
-
-    @Override
-    public Sat isSatisfied(ReconfigurationPlan p) {
+    public boolean isSatisfied(ReconfigurationPlan p) {
         Model mo = p.getOrigin().clone();
         Action[] actions = new Action[p.getSize()];
         int idx = 0;
@@ -110,12 +89,12 @@ public class MaxSpareNode extends SatConstraint {
             boolean[] idle_start = checkIdle(mo, getInvolvedNodes());
 
             if (!actions[k].apply(mo)) {
-                return Sat.UNSATISFIED;
+                return false;
             }
             if (cActions.containsKey(k)) {
                 for (Integer m : cActions.get(k)) {
                     if (!actions[m].apply(mo)) {
-                        return Sat.UNSATISFIED;
+                        return false;
                     }
                     skip.add(m);
                 }
@@ -128,10 +107,10 @@ public class MaxSpareNode extends SatConstraint {
                 if ((idle_start[j]) && (idle_end[j])) nidle++;
             }
             if (nidle > getAmount()) {
-                return Sat.UNSATISFIED;
+                return false;
             }
         }
-        return Sat.SATISFIED;
+        return true;
     }
 
     private Map<Integer, ArrayList<Integer>> concurrent(ReconfigurationPlan p) {
@@ -214,5 +193,11 @@ public class MaxSpareNode extends SatConstraint {
 
         return b.toString();
     }
+
+    @Override
+    public SatConstraintChecker getChecker() {
+        return new MaxSpareNodeChecker(this);
+    }
+
 
 }

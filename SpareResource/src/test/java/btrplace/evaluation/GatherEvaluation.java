@@ -1,9 +1,8 @@
 package btrplace.evaluation;
 
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
 import btrplace.model.constraint.Gather;
-import btrplace.solver.SolverException;
+import btrplace.model.constraint.SatConstraint;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
@@ -12,14 +11,13 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Created with IntelliJ IDEA.
  * User: TU HUYNH DANG
  * Date: 5/15/13
  * Time: 12:50 PM
- * To change this template use File | Settings | File Templates.
  */
 public class GatherEvaluation {
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(TestGoogleTraceDataA.class.getPackage().getName());
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger("Evaluation");
 
     @Test
     public void gatherTest1() {
@@ -40,12 +38,6 @@ public class GatherEvaluation {
         log.info(m.toString());
         log.info(ctrs.toString());
         Evaluation ev = new Evaluation(m, ctrs, ctrsC);
-        try {
-            ev.evaluate();
-        } catch (SolverException e) {
-            log.error(e.toString());
-        }
+        ev.evaluate();
     }
-
-
 }

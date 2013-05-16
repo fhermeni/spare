@@ -5,10 +5,9 @@ package btrplace.model.constraint;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
 import btrplace.model.view.ShareableResource;
-import btrplace.plan.Action;
 import btrplace.plan.ReconfigurationPlan;
+import btrplace.plan.event.Action;
 
 import java.util.*;
 
@@ -83,7 +82,7 @@ public class MaxSpareResources extends SatConstraint {
     }
 
     @Override
-    public Sat isSatisfied(Model i) {
+    public boolean isSatisfied(Model i) {
         int spare = 0;
         Mapping map = i.getMapping();
         Set<UUID> onnodes = map.getOnlineNodes();
@@ -93,7 +92,7 @@ public class MaxSpareResources extends SatConstraint {
         ShareableResource rc = (ShareableResource) i.getView(ShareableResource.VIEW_ID_BASE + rcId);
 
         if (rc == null) {
-            return Sat.UNSATISFIED;
+            return false;
         }
 
         for (UUID nj : nodes) {
@@ -104,29 +103,29 @@ public class MaxSpareResources extends SatConstraint {
             for (UUID vmId : i.getMapping().getRunningVMs(nj)) {
                 spare -= rc.get(vmId);
                 if (spare <= qty)
-                    return Sat.SATISFIED;
+                    return true;
             }
         }
 
-        return Sat.UNSATISFIED;
+        return false;
     }
 
     @Override
-    public Sat isSatisfied(ReconfigurationPlan p) {
+    public boolean isSatisfied(ReconfigurationPlan p) {
         Model mo = p.getOrigin();
-        if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-            return Sat.UNSATISFIED;
+        if (!isSatisfied(mo)) {
+            return false;
         }
         mo = p.getOrigin().clone();
         for (Action a : p) {
             if (!a.apply(mo)) {
-                return Sat.UNSATISFIED;
+                return false;
             }
-            if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-                return Sat.UNSATISFIED;
+            if (!isSatisfied(mo)) {
+                return false;
             }
         }
-        return Sat.SATISFIED;
+        return true;
     }
 
     @Override

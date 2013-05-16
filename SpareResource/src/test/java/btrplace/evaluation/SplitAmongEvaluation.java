@@ -6,17 +6,15 @@ import btrplace.json.model.InstanceConverter;
 import btrplace.json.plan.ReconfigurationPlanConverter;
 import btrplace.model.DefaultModel;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
 import btrplace.model.constraint.Offline;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.model.constraint.Split;
 import btrplace.model.constraint.SplitAmong;
-import btrplace.model.constraint.Spread;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -30,11 +28,13 @@ import java.util.*;
  * Time: 1:15 PM
  */
 public class SplitAmongEvaluation {
-    private static final Logger log = LoggerFactory.getLogger(TestGoogleTraceDataA.class.getPackage().getName());
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger("Evaluation");
     private final String filename = "/user/hdang/home/Downloads/google_trace/dataA/";
 
+
     @Test
-    public void spreadAmongTest1() {
+    public void splitAmongTest1() {
         TestModelGenerator tm = new TestModelGenerator(10, 40);
         Model m = tm.generateModel();
         Set<UUID> apache = tm.getRandomVMs(4);
@@ -43,9 +43,10 @@ public class SplitAmongEvaluation {
 
         Set<Set<UUID>> vm_set = new HashSet<Set<UUID>>();
         vm_set.add(mysql);
+        vm_set.add(apache);
 
         Set<UUID> low_delay = tm.getRandomNodes(2);
-        Set<UUID> low_delay2 = tm.getRandomNodes(2);
+        Set<UUID> low_delay2 = tm.getRandomNodes(4);
 
         Set<Set<UUID>> node_set = new HashSet<Set<UUID>>();
         node_set.add(low_delay);
@@ -54,20 +55,16 @@ public class SplitAmongEvaluation {
         Set<SatConstraint> ctrs = new HashSet<SatConstraint>();
         Set<SatConstraint> ctrsC = new HashSet<SatConstraint>();
 
-        ctrs.add(new Spread(apache, false));
-        ctrs.add(new Spread(tomcat, false));
+//        ctrs.add(new Spread(apache, false));
+//        ctrs.add(new Spread(tomcat, false));
         ctrs.add(new SplitAmong(vm_set, node_set));
 
-        ctrsC.add(new Spread(apache, false));
-        ctrsC.add(new Spread(tomcat, false));
+//        ctrsC.add(new Spread(apache, false));
+//        ctrsC.add(new Spread(tomcat, false));
         ctrsC.add(new SplitAmong(vm_set, node_set, true));
 
         Evaluation ev = new Evaluation(m, ctrs, ctrsC);
-        try {
-            ev.evaluate();
-        } catch (SolverException e) {
-            log.error(e.toString());
-        }
+        ev.evaluate();
     }
 
     @Test
@@ -104,7 +101,7 @@ public class SplitAmongEvaluation {
         ReconfigurationPlan plan = cra.solve(model, dis_cstrs);
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
-        Assert.assertEquals(saC.isSatisfied(result), SatConstraint.Sat.SATISFIED);
+        Assert.assertTrue(saC.isSatisfied(result));
         Evaluation evaluation = new Evaluation(result, dis_cstrs, cont_cstrs);
         evaluation.evaluate();
     }
@@ -141,7 +138,7 @@ public class SplitAmongEvaluation {
         ReconfigurationPlan plan = cra.solve(model, dis_cstrs);
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
-        Assert.assertEquals(saC.isSatisfied(result), SatConstraint.Sat.SATISFIED);
+        Assert.assertTrue(saC.isSatisfied(result));
         Evaluation evaluation = new Evaluation(result, dis_cstrs, cont_cstrs);
         evaluation.evaluate();
     }
@@ -177,7 +174,7 @@ public class SplitAmongEvaluation {
         ReconfigurationPlan plan = cra.solve(model, dis_cstrs);
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
-        Assert.assertEquals(saC.isSatisfied(result), SatConstraint.Sat.SATISFIED);
+        Assert.assertTrue(saC.isSatisfied(result));
         Evaluation evaluation = new Evaluation(result, dis_cstrs, cont_cstrs);
         evaluation.evaluate();
     }
@@ -214,13 +211,13 @@ public class SplitAmongEvaluation {
 
         Instance in = new Instance(model, new ArrayList<SatConstraint>(cont_cstrs));
         InstanceConverter ic = new InstanceConverter();
-        ic.toJSON(in);
+        ReconfigurationPlanConverter planConverter = new ReconfigurationPlanConverter();
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         ReconfigurationPlan plan = cra.solve(model, dis_cstrs);
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
-        Assert.assertEquals(saC.isSatisfied(result), SatConstraint.Sat.SATISFIED);
+        Assert.assertTrue(saC.isSatisfied(result));
 
         Random rand = new Random();
         Set<Offline> offs = new HashSet<Offline>();
@@ -233,8 +230,6 @@ public class SplitAmongEvaluation {
         cont_cstrs.addAll(offs);
         plan = cra.solve(result, cont_cstrs);
         Assert.assertNotNull(plan);
-        ReconfigurationPlanConverter planConverter = new ReconfigurationPlanConverter();
-        planConverter.toJSON(plan);
         log.info(plan.toString());
     }
 }

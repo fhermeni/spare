@@ -3,14 +3,13 @@
  */
 package btrplace.model.constraint;
 
-import btrplace.model.Mapping;
-import btrplace.model.Model;
-import btrplace.model.SatConstraint;
-import btrplace.model.view.ShareableResource;
-import btrplace.plan.Action;
-import btrplace.plan.ReconfigurationPlan;
+import btrplace.model.constraint.checker.MaxSpareResourcesChecker;
+import btrplace.model.constraint.checker.SatConstraintChecker;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * A constraint to force a set of nodes to reserve a maximum number (n) of spare
@@ -83,53 +82,6 @@ public class MaxSpareResources extends SatConstraint {
     }
 
     @Override
-    public Sat isSatisfied(Model i) {
-        int spare = 0;
-        Mapping map = i.getMapping();
-        Set<UUID> onnodes = map.getOnlineNodes();
-        Set<UUID> nodes = new HashSet<UUID>(onnodes);
-        nodes.retainAll(getInvolvedNodes());
-
-        ShareableResource rc = (ShareableResource) i.getView(ShareableResource.VIEW_ID_BASE + rcId);
-
-        if (rc == null) {
-            return Sat.UNSATISFIED;
-        }
-
-        for (UUID nj : nodes) {
-            spare += rc.get(nj);
-        }
-
-        for (UUID nj : nodes) {
-            for (UUID vmId : i.getMapping().getRunningVMs(nj)) {
-                spare -= rc.get(vmId);
-                if (spare <= qty)
-                    return Sat.SATISFIED;
-            }
-        }
-
-        return Sat.UNSATISFIED;
-    }
-
-    @Override
-    public Sat isSatisfied(ReconfigurationPlan p) {
-        Model mo = p.getOrigin();
-        if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-            return Sat.UNSATISFIED;
-        }
-        mo = p.getOrigin().clone();
-        for (Action a : p) {
-            if (!a.apply(mo)) {
-                return Sat.UNSATISFIED;
-            }
-            if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-                return Sat.UNSATISFIED;
-            }
-        }
-        return Sat.SATISFIED;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -171,6 +123,11 @@ public class MaxSpareResources extends SatConstraint {
         b.append(')');
 
         return b.toString();
+    }
+
+    @Override
+    public SatConstraintChecker getChecker() {
+        return new MaxSpareResourcesChecker(this);
     }
 
 }

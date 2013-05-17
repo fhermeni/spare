@@ -3,11 +3,9 @@ package btrplace.solver.choco.constraint;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
-import btrplace.model.SatConstraint.Sat;
 import btrplace.model.constraint.Killed;
 import btrplace.model.constraint.MaxSpareResources;
-import btrplace.model.constraint.Overbook;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.ShutdownNode;
@@ -17,12 +15,16 @@ import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
 import btrplace.solver.choco.durationEvaluator.ConstantDuration;
 import btrplace.test.PremadeElements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
 public class CMaxSpareResourcesTest implements PremadeElements {
+
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Test
     public void testCMaxSpareResourcesDiscrete1() throws SolverException {
@@ -43,20 +45,18 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 2);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.getOrigin().getMapping().toString());
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.getOrigin().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     @Test
@@ -82,21 +82,19 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         Set<UUID> setn2 = new HashSet<UUID>(Arrays.asList(n4, n5));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 3);
         MaxSpareResources c2 = new MaxSpareResources(setn2, "vcpu", 3);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c);
-        l.add(oc);
         l.add(c2);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.getOrigin().getMapping().toString());
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.getOrigin().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     @Test
@@ -118,20 +116,18 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2, n3));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 5);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.getOrigin().getMapping().toString());
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.getOrigin().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     @Test
@@ -152,18 +148,16 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 5);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan);
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     @Test(enabled = false)
@@ -184,24 +178,22 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Killed cKilled = new Killed(new HashSet<UUID>(Arrays.asList(vm1)));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 2);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
         c.setContinuous(true);
         l.add(cKilled);
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(2));
-        cra.setVerbosity(2);
+        //cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(mo, l);
 
         Assert.assertNotNull(plan);
         Assert.assertEquals(rc.get(vm3), 1);
-        System.out.println(plan.getOrigin().getMapping().toString());
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.getOrigin().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     @Test(enabled = false)
@@ -228,11 +220,9 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Killed cKilled = new Killed(new HashSet<UUID>(Arrays.asList(vm1)));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 2);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
         c.setContinuous(true);
         l.add(cKilled);
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
@@ -241,9 +231,9 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         ReconfigurationPlan plan = cra.solve(mo, l);
 
         Assert.assertNotNull(plan);
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
-        System.out.println(plan.getOrigin().getMapping().toString());
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
+        log.info(plan.getOrigin().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
     }
 }

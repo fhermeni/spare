@@ -22,7 +22,6 @@ import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint.Sat;
 import btrplace.model.view.ShareableResource;
 import btrplace.test.PremadeElements;
 import org.testng.Assert;
@@ -87,14 +86,14 @@ public class MinSpareResourcesTest implements PremadeElements {
 
         MinSpareResources msr = new MinSpareResources(nodes, "cpu", 3);
 
-        Assert.assertEquals(msr.isSatisfied(mo), Sat.SATISFIED);
+        Assert.assertTrue(msr.isSatisfied(mo));
         rc.set(vm1, 3);
-        Assert.assertEquals(msr.isSatisfied(mo), Sat.UNSATISFIED);
+        Assert.assertFalse(msr.isSatisfied(mo));
 
         map.addSleepingVM(vm2, n1);
         map.addSleepingVM(vm3, n1);
 
-        Assert.assertEquals(msr.isSatisfied(mo), Sat.SATISFIED);
+        Assert.assertTrue(msr.isSatisfied(mo));
 
     }
 

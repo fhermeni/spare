@@ -1,6 +1,8 @@
 /testng.xml
 *.class
 *.jar
+*.json
+*.log
 .idea/
 .classpath
 .project

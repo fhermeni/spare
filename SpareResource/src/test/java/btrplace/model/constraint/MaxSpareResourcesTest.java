@@ -4,7 +4,6 @@ import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint.Sat;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.DefaultReconfigurationPlan;
 import btrplace.plan.ReconfigurationPlan;
@@ -74,13 +73,13 @@ public class MaxSpareResourcesTest implements PremadeElements {
 
         MaxSpareResources msr = new MaxSpareResources(nodes, "vcpu", 2);
 
-        Assert.assertEquals(msr.isSatisfied(mo), Sat.SATISFIED);
+        Assert.assertTrue(msr.isSatisfied(mo));
         rc.set(vm1, 1);
-        Assert.assertEquals(msr.isSatisfied(mo), Sat.UNSATISFIED);
+        Assert.assertFalse(msr.isSatisfied(mo));
 
         map.addRunningVM(vm5, n2);
 
-        Assert.assertEquals(msr.isSatisfied(mo), Sat.SATISFIED);
+        Assert.assertTrue(msr.isSatisfied(mo));
     }
 
     @Test
@@ -111,19 +110,19 @@ public class MaxSpareResourcesTest implements PremadeElements {
         Overbook oc = new Overbook(map.getAllNodes(), "vcpu", 1);
 
         ReconfigurationPlan plan = new DefaultReconfigurationPlan(mo);
-        Assert.assertEquals(msr.isSatisfied(plan), Sat.SATISFIED);
-        Assert.assertEquals(oc.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(msr.isSatisfied(plan));
+        Assert.assertTrue(oc.isSatisfied(plan));
 
         plan.add(new MigrateVM(vm1, n1, n2, 6, 10));
-        Assert.assertEquals(msr.isSatisfied(plan), Sat.UNSATISFIED);
+        Assert.assertFalse(msr.isSatisfied(plan));
 
         plan.add(new MigrateVM(vm4, n2, n1, 0, 5));
         System.out.println(plan.getOrigin().getMapping().toString());
         System.out.println(plan.getResult().getMapping().toString());
         System.out.println(plan.toString());
 
-        Assert.assertEquals(msr.isSatisfied(plan), Sat.SATISFIED);
-        Assert.assertEquals(oc.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(msr.isSatisfied(plan));
+        Assert.assertTrue(oc.isSatisfied(plan));
 
     }
 
@@ -142,16 +141,16 @@ public class MaxSpareResourcesTest implements PremadeElements {
         Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         ReconfigurationPlan plan = new DefaultReconfigurationPlan(mo);
-        Assert.assertEquals(msr.isSatisfied(plan), Sat.SATISFIED);
-        Assert.assertEquals(oc.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(msr.isSatisfied(plan));
+        Assert.assertTrue(oc.isSatisfied(plan));
 
         plan.add(new ShutdownNode(n2, 2, 4));
-        Assert.assertEquals(msr.isSatisfied(plan), Sat.UNSATISFIED);
+        Assert.assertFalse(msr.isSatisfied(plan));
 
         plan.add(new MigrateVM(vm2, n2, n1, 0, 2));
         plan.add(new ShutdownVM(vm1, n1, 4, 5));
         System.out.println(plan);
-        Assert.assertEquals(msr.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(msr.isSatisfied(plan));
 
     }
 

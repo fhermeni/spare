@@ -2,10 +2,9 @@ package btrplace.model.constraint;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
+import btrplace.model.constraint.checker.MinSpareResourcesChecker;
+import btrplace.model.constraint.checker.SatConstraintChecker;
 import btrplace.model.view.ShareableResource;
-import btrplace.plan.Action;
-import btrplace.plan.ReconfigurationPlan;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -84,7 +83,7 @@ public class MinSpareResources extends SatConstraint {
     }
 
     @Override
-    public Sat isSatisfied(Model i) {
+    public boolean isSatisfied(Model i) {
         int spare = 0;
         Mapping map = i.getMapping();
         Set<UUID> onnodes = map.getOnlineNodes();
@@ -94,7 +93,7 @@ public class MinSpareResources extends SatConstraint {
         ShareableResource rc = (ShareableResource) i.getView(ShareableResource.VIEW_ID_BASE + rcId);
 
         if (rc == null) {
-            return Sat.UNSATISFIED;
+            return false;
         }
 
         for (UUID nj : nodes) {
@@ -105,30 +104,12 @@ public class MinSpareResources extends SatConstraint {
             for (UUID vmId : i.getMapping().getRunningVMs(nj)) {
                 spare -= rc.get(vmId);
                 if (spare < qty)
-                    return Sat.UNSATISFIED;
+                    return false;
             }
         }
 
-        return Sat.SATISFIED;
+        return true;
 
-    }
-
-    @Override
-    public Sat isSatisfied(ReconfigurationPlan p) {
-        Model mo = p.getOrigin();
-        if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-            return Sat.UNSATISFIED;
-        }
-        mo = p.getOrigin().clone();
-        for (Action a : p) {
-            if (!a.apply(mo)) {
-                return Sat.UNSATISFIED;
-            }
-            if (!isSatisfied(mo).equals(Sat.SATISFIED)) {
-                return Sat.UNSATISFIED;
-            }
-        }
-        return Sat.SATISFIED;
     }
 
     @Override
@@ -173,6 +154,11 @@ public class MinSpareResources extends SatConstraint {
         b.append(')');
 
         return b.toString();
+    }
+
+    @Override
+    public SatConstraintChecker getChecker() {
+        return new MinSpareResourcesChecker(this);
     }
 
 }

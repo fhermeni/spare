@@ -3,8 +3,6 @@ package btrplace.solver.choco.constraint;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
-import btrplace.model.SatConstraint.Sat;
 import btrplace.model.constraint.*;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
@@ -18,13 +16,18 @@ import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
 import btrplace.solver.choco.durationEvaluator.ConstantDuration;
 import btrplace.test.PremadeElements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
 public class CMaxSpareNodeTest implements PremadeElements {
-    @Test(groups = {"discrete"})
+
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest1() throws SolverException {
 
         ShareableResource resources = new ShareableResource("vcpu", 1);
@@ -52,12 +55,12 @@ public class CMaxSpareNodeTest implements PremadeElements {
         cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest2() throws SolverException {
         ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 4);
@@ -83,12 +86,12 @@ public class CMaxSpareNodeTest implements PremadeElements {
         cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest3() throws SolverException {
         ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 2);
@@ -112,12 +115,12 @@ public class CMaxSpareNodeTest implements PremadeElements {
 //        cra.setMaxEnd(10);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest4() throws SolverException {
         ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 4);
@@ -147,12 +150,12 @@ public class CMaxSpareNodeTest implements PremadeElements {
         cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest5() throws SolverException {
         ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 4);
@@ -179,9 +182,9 @@ public class CMaxSpareNodeTest implements PremadeElements {
         cra.setMaxEnd(30);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
     @Test(groups = {"discrete"})
@@ -203,25 +206,22 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3, n4, n5));
         Online online = new Online(new HashSet<UUID>(Arrays.asList(n4, n5)));
         MaxSpareNode msn = new MaxSpareNode(nodes, 0);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
         constraints.add(online);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
-        cra.setVerbosity(2);
         cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTestMassive() throws SolverException {
 
         UUID n6 = UUID.randomUUID();
@@ -258,16 +258,15 @@ public class CMaxSpareNodeTest implements PremadeElements {
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
         cra.repair(false);
-        cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(dependsOnGroups = {"discrete"})
+    @Test(timeOut = 10000)
     public void testMaxSNContinuousSimplest() throws SolverException {
         Mapping map = new MappingBuilder().on(n1, n2)
                 .run(n1, vm1, vm2)
@@ -296,12 +295,12 @@ public class CMaxSpareNodeTest implements PremadeElements {
         cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan);
-        System.out.println(plan.getResult());
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
+        Assert.assertTrue(msn.isSatisfied(plan));
     }
 
-    @Test(dependsOnMethods = {"testMaxSNContinuousSimplest"})
+    @Test(timeOut = 10000, dependsOnMethods = {"testMaxSNContinuousSimplest"})
     public void testMaxSNContinuousSimplest2() throws SolverException {
         Mapping map = new MappingBuilder().on(n1, n2)
                 .run(n1, vm1, vm2)
@@ -329,12 +328,12 @@ public class CMaxSpareNodeTest implements PremadeElements {
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);
-        System.out.println(plan);
-        System.out.println(plan.getResult());
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
+        Assert.assertTrue(msn.isSatisfied(plan));
     }
 
-    @Test(dependsOnMethods = {"testMaxSNContinuousSimplest2"})
+    @Test(timeOut = 10000, dependsOnMethods = {"testMaxSNContinuousSimplest2"})
     public void testMaxSNContinuousSimple() throws SolverException {
         Mapping map = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm4)
@@ -367,13 +366,13 @@ public class CMaxSpareNodeTest implements PremadeElements {
 //        cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan);
-        System.out.println(plan.getResult());
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
+        Assert.assertTrue(msn.isSatisfied(plan));
 //        Assert.fail();
     }
 
-    @Test(dependsOnMethods = {"testMaxSNContinuousSimple"})
+    @Test(timeOut = 10000, dependsOnMethods = {"testMaxSNContinuousSimple"})
     public void testMaxSNContinuous1() throws SolverException {
         Mapping map = new MappingBuilder().on(n1, n2).off(n3)
                 .run(n1, vm1).build();
@@ -404,12 +403,12 @@ public class CMaxSpareNodeTest implements PremadeElements {
 //        cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(msn.isSatisfied(plan));
     }
 
-    @Test(dependsOnMethods = {"testMaxSNContinuousSimple"})
+    @Test(timeOut = 10000, dependsOnMethods = {"testMaxSNContinuousSimple"})
     public void testMaxSNContinuous2() throws SolverException {
         Mapping map = new MappingBuilder().on(n1, n2).off(n3).ready(vm2, vm3)
                 .run(n1, vm1).build();
@@ -442,9 +441,9 @@ public class CMaxSpareNodeTest implements PremadeElements {
 //        cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(msn.isSatisfied(plan));
     }
 
     @Test
@@ -480,9 +479,8 @@ public class CMaxSpareNodeTest implements PremadeElements {
 //        cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(msn.isSatisfied(plan), Sat.SATISFIED);
-        Assert.fail();
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(msn.isSatisfied(plan));
     }
 }

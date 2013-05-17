@@ -4,7 +4,6 @@ import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint.Sat;
 import btrplace.plan.DefaultReconfigurationPlan;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.BootNode;
@@ -45,10 +44,10 @@ public class MaxOnlinesTest implements PremadeElements {
         Set<UUID> s = new HashSet<UUID>(Arrays.asList(n1, n2, n3));
         MaxOnlines mo = new MaxOnlines(s, 2);
 
-        Assert.assertEquals(mo.isSatisfied(model), Sat.SATISFIED);
+        Assert.assertTrue(mo.isSatisfied(model));
 
         model.getMapping().addOnlineNode(n3);
-        Assert.assertEquals(mo.isSatisfied(model), Sat.UNSATISFIED);
+        Assert.assertFalse(mo.isSatisfied(model));
     }
 
     @Test
@@ -65,13 +64,13 @@ public class MaxOnlinesTest implements PremadeElements {
 
         ReconfigurationPlan plan = new DefaultReconfigurationPlan(model);
 
-        Assert.assertEquals(mo.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(mo.isSatisfied(plan));
 
         plan.add(new BootNode(n3, 3, 9));
-        Assert.assertEquals(mo.isSatisfied(plan), Sat.UNSATISFIED);
+        Assert.assertFalse(mo.isSatisfied(plan));
 
         plan.add(new ShutdownNode(n2, 0, 5));
-        Assert.assertEquals(mo.isSatisfied(plan), Sat.SATISFIED);
+        Assert.assertTrue(mo.isSatisfied(plan));
 
     }
 }

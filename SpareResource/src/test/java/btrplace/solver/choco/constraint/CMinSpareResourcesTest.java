@@ -3,11 +3,10 @@ package btrplace.solver.choco.constraint;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
-import btrplace.model.SatConstraint.Sat;
 import btrplace.model.constraint.MinSpareResources;
 import btrplace.model.constraint.Overbook;
 import btrplace.model.constraint.Running;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.solver.SolverException;
@@ -15,6 +14,8 @@ import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
 import btrplace.test.PremadeElements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -22,7 +23,9 @@ import java.util.*;
 
 public class CMinSpareResourcesTest implements PremadeElements {
 
-    @Test
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+    @Test(timeOut = 10000)
     public void testCMinSpareResourcesDiscrete() throws SolverException {
 
         Mapping m = new MappingBuilder().on(n1, n2, n3)
@@ -41,22 +44,20 @@ public class CMinSpareResourcesTest implements PremadeElements {
 
         Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MinSpareResources c = new MinSpareResources(setn1, "vcpu", 3);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void test2CMinSpareResourcesDiscrete() throws SolverException {
 
         Mapping m = new MappingBuilder().on(n1, n2, n3)
@@ -76,20 +77,18 @@ public class CMinSpareResourcesTest implements PremadeElements {
         Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MinSpareResources c = new MinSpareResources(setn1, "vcpu", 3);
         MinSpareResources c2 = new MinSpareResources(new HashSet<UUID>(Arrays.asList(n2)), "vcpu", 1);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c2);
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
     public void testdiscreteCMinSpareResourcesWithOverbookRatio2() throws SolverException {
@@ -122,12 +121,13 @@ public class CMinSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
 
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testGetMisPlacedVMs() {
+
         Mapping m = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm3)
                 .run(n2, vm2, vm4).build();
@@ -147,8 +147,9 @@ public class CMinSpareResourcesTest implements PremadeElements {
         Assert.assertTrue(!cc.getMisPlacedVMs(mo).contains(vm5));
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testInject() throws SolverException {
+
         Mapping m = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm3)
                 .run(n2, vm2, vm4)
@@ -175,13 +176,14 @@ public class CMinSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan);
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
+        log.info(plan.getResult().getMapping().toString());
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testContinuousCMinSpareResources() throws SolverException {
+
         Mapping m = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm3)
                 .run(n2, vm2, vm4)
@@ -203,10 +205,8 @@ public class CMinSpareResourcesTest implements PremadeElements {
         Running cr = new Running(new HashSet<UUID>(Arrays.asList(vm7)));
         MinSpareResources c = new MinSpareResources(setn1, "vcpu", 3, true);
         MinSpareResources c2 = new MinSpareResources(new HashSet<UUID>(Arrays.asList(n2)), "vcpu", 1, true);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1, true);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
-        l.add(oc);
         l.add(cr);
         l.add(c);
         l.add(c2);
@@ -216,14 +216,15 @@ public class CMinSpareResourcesTest implements PremadeElements {
         ReconfigurationPlan plan = cra.solve(mo, l);
 
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
-        Assert.assertEquals(c.isSatisfied(plan.getResult()), Sat.SATISFIED);
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
+        Assert.assertTrue(c.isSatisfied(plan.getResult()));
 
     }
 
-    @Test
-    public void testwithOverBook() throws SolverException {
+    @Test(timeOut = 10000)
+    public void complexDiscreteTest() throws SolverException {
+
         Mapping m = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm3)
                 .run(n2, vm2, vm4)
@@ -242,27 +243,25 @@ public class CMinSpareResourcesTest implements PremadeElements {
         mo.attach(rc);
 
         Running cr = new Running(new HashSet<UUID>(Arrays.asList(vm7)));
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
         MinSpareResources c2 = new MinSpareResources(new HashSet<UUID>(Arrays.asList(n2)), "vcpu", 1);
 
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c2);
-        l.add(oc);
         l.add(cr);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.getResult().getMapping().toString());
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void discreteminSpareResourceTest() throws SolverException {
+
         Mapping m = new MappingBuilder().on(n1, n2).off(n3)
                 .run(n1, vm1, vm3, vm5)
-                .run(n2, vm2, vm4, vm6)
-                .run(n3, vm5, vm6).ready(vm7).build();
+                .run(n2, vm2, vm4, vm6).ready(vm7).build();
 
         btrplace.model.view.ShareableResource rc = new ShareableResource("vcpu", 5);
         rc.set(vm1, 2);
@@ -277,14 +276,12 @@ public class CMinSpareResourcesTest implements PremadeElements {
         mo.attach(rc);
 
         Running cr = new Running(new HashSet<UUID>(Arrays.asList(vm7)));
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
         MinSpareResources c2 = new MinSpareResources(m.getAllNodes(), "vcpu", 1);
         Set<UUID> node12 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MinSpareResources c3 = new MinSpareResources(node12, "vcpu", 2);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c2);
-        l.add(oc);
         l.add(cr);
         l.add(c3);
 
@@ -292,15 +289,15 @@ public class CMinSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.getResult().getMapping().toString());
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void discreteminSpareResourceTest2() throws SolverException {
+
         Mapping m = new MappingBuilder().on(n1, n2).off(n3, n4)
                 .run(n1, vm1, vm3, vm5)
-                .run(n2, vm2, vm4, vm6)
-                .run(n3, vm5, vm6).ready(vm7).build();
+                .run(n2, vm2, vm4, vm6).ready(vm7).build();
 
         btrplace.model.view.ShareableResource rc = new ShareableResource("vcpu", 5);
         rc.set(vm1, 2);
@@ -316,14 +313,12 @@ public class CMinSpareResourcesTest implements PremadeElements {
 
 
         Running cr = new Running(new HashSet<UUID>(Arrays.asList(vm7)));
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
         MinSpareResources c2 = new MinSpareResources(m.getAllNodes(), "vcpu", 6);
         Set<UUID> node12 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MinSpareResources c3 = new MinSpareResources(node12, "vcpu", 3);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c2);
-        l.add(oc);
         l.add(cr);
         l.add(c3);
 
@@ -331,7 +326,7 @@ public class CMinSpareResourcesTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(mo, l);
         Assert.assertNotNull(plan);
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.getResult().getMapping().toString());
     }
 
 }

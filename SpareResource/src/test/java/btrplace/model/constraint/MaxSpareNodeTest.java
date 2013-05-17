@@ -4,7 +4,6 @@ import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.SatConstraint.Sat;
 import btrplace.model.view.ShareableResource;
 import btrplace.test.PremadeElements;
 import org.testng.Assert;
@@ -42,13 +41,13 @@ public class MaxSpareNodeTest implements PremadeElements {
 
         MaxSpareNode msn = new MaxSpareNode(nodes, 1);
 
-        Assert.assertEquals(msn.isSatisfied(mo), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(mo));
 
         map.addSleepingVM(vm2, n1);
         map.addSleepingVM(vm3, n1);
-        Assert.assertEquals(msn.isSatisfied(mo), Sat.SATISFIED);
+        Assert.assertTrue(msn.isSatisfied(mo));
 
         map.addSleepingVM(vm4, n3);
-        Assert.assertEquals(msn.isSatisfied(mo), Sat.UNSATISFIED);
+        Assert.assertFalse(msn.isSatisfied(mo));
     }
 }

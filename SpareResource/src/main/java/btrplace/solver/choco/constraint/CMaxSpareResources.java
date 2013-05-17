@@ -1,11 +1,13 @@
 package btrplace.solver.choco.constraint;
 
 import btrplace.model.Model;
-import btrplace.model.SatConstraint;
 import btrplace.model.constraint.MaxSpareResources;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
 import btrplace.solver.SolverException;
-import btrplace.solver.choco.*;
+import btrplace.solver.choco.ReconfigurationProblem;
+import btrplace.solver.choco.Slice;
+import btrplace.solver.choco.actionModel.VMActionModel;
 import btrplace.solver.choco.view.CShareableResource;
 import choco.cp.solver.CPSolver;
 import choco.cp.solver.constraints.global.scheduling.cumulative.Cumulative;
@@ -72,7 +74,7 @@ public class CMaxSpareResources implements ChocoSatConstraint {
 
 
         //Continuous restriction: The constraint must be already satisfied
-        if (cstr.isContinuous()) if (!cstr.isSatisfied(rp.getSourceModel()).equals(SatConstraint.Sat.SATISFIED)) {
+        if (cstr.isContinuous()) if (!cstr.isSatisfied(rp.getSourceModel())) {
             rp.getLogger()
                     .error("The constraint '{}' must be already satisfied to provide a continuous restriction",
                             cstr);

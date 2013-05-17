@@ -4,7 +4,10 @@ import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.constraint.*;
+import btrplace.model.constraint.MaxOnlines;
+import btrplace.model.constraint.Offline;
+import btrplace.model.constraint.Online;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.BootNode;
@@ -62,14 +65,12 @@ public class CMaxOnlinesTest implements PremadeElements {
         model.attach(resources);
         Set<UUID> nodes = map.getAllNodes();
         MaxOnlines maxon = new MaxOnlines(nodes, 2);
-        Set<UUID> nodes2 = map.getAllNodes();
-        nodes2.remove(n3);
+        Set<UUID> nodes2 = new HashSet<UUID>(Arrays.asList(n1, n2));
+
         MaxOnlines maxon2 = new MaxOnlines(nodes2, 1);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(maxon);
         constraints.add(maxon2);
-        constraints.add(overbook);
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
@@ -78,7 +79,6 @@ public class CMaxOnlinesTest implements PremadeElements {
         log.info(plan.toString());
         log.info(plan.getResult().getMapping().toString());
         Assert.assertTrue(maxon.isSatisfied(plan.getResult()));
-        Assert.assertFalse(maxon.isSatisfied(plan));
     }
 
     @Test()
@@ -157,12 +157,10 @@ public class CMaxOnlinesTest implements PremadeElements {
         Set<UUID> nodes = map.getAllNodes();
         MaxOnlines maxon = new MaxOnlines(nodes, 2);
         Online oncstr = new Online(new HashSet<UUID>(Arrays.asList(n3)));
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         maxon.setContinuous(true);
         constraints.add(maxon);
         constraints.add(oncstr);
-        constraints.add(overbook);
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(5));
         cra.getDurationEvaluators().register(BootNode.class, new ConstantDuration(4));
@@ -189,10 +187,8 @@ public class CMaxOnlinesTest implements PremadeElements {
         Model model = new DefaultModel(map);
         model.attach(resources);
         MaxOnlines maxon = new MaxOnlines(map.getAllNodes(), 2);
-        Overbook overbook = new Overbook(map.getAllNodes(), "cpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(maxon);
-        constraints.add(overbook);
         constraints.add(new Online(new HashSet<UUID>(Arrays.asList(n2))));
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
@@ -217,10 +213,8 @@ public class CMaxOnlinesTest implements PremadeElements {
         Model model = new DefaultModel(map);
         model.attach(resources);
         MaxOnlines maxon = new MaxOnlines(map.getAllNodes(), 2, true);
-        Overbook overbook = new Overbook(map.getAllNodes(), "cpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(maxon);
-        constraints.add(overbook);
         constraints.add(new Online(new HashSet<UUID>(Arrays.asList(n2))));
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
@@ -248,11 +242,9 @@ public class CMaxOnlinesTest implements PremadeElements {
         model.attach(resources);
         MaxOnlines maxon = new MaxOnlines(map.getAllNodes(), 4);
         MaxOnlines maxon2 = new MaxOnlines(new HashSet<UUID>(Arrays.asList(n2, n3, n4)), 2);
-        Overbook overbook = new Overbook(map.getAllNodes(), "cpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(maxon);
         constraints.add(maxon2);
-        constraints.add(overbook);
         constraints.add(new Online(new HashSet<UUID>(Arrays.asList(n4, n5))));
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxOnlines.Builder());
@@ -279,13 +271,13 @@ public class CMaxOnlinesTest implements PremadeElements {
                 .run(n3, vm3).build();
         Model model = new DefaultModel(map);
         model.attach(resources);
+
+        log.info(map.toString());
         MaxOnlines maxon = new MaxOnlines(map.getAllNodes(), 4, true);
         MaxOnlines maxon2 = new MaxOnlines(new HashSet<UUID>(Arrays.asList(n2, n3, n4)), 2, true);
-        Overbook overbook = new Overbook(map.getAllNodes(), "cpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(maxon);
         constraints.add(maxon2);
-        constraints.add(overbook);
         constraints.add(new Online(new HashSet<UUID>(Arrays.asList(n4, n5))));
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();

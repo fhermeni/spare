@@ -31,7 +31,7 @@ public class SpreadEvaluation implements PremadeElements {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @Test
+    @Test  // Gist: https://gist.github.com/tudang/5599099
     public void spreadBasicEvaluation() {
         Mapping map = new MappingBuilder().on(n1, n2, n3, n4)
                 .run(n1, vm1, vm2)
@@ -58,17 +58,16 @@ public class SpreadEvaluation implements PremadeElements {
         model.attach(mem);
         log.info(model.toString());
 
-
         Set<SatConstraint> ctrs = new HashSet<SatConstraint>();
         Set<SatConstraint> ctrsC = new HashSet<SatConstraint>();
-        Set<UUID> apache = new HashSet<UUID>(Arrays.asList(vm1, vm3, vm5));
-        Set<UUID> tomcat = new HashSet<UUID>(Arrays.asList(vm2, vm4, vm6));
+        Set<UUID> vms1 = new HashSet<UUID>(Arrays.asList(vm1, vm3, vm5));
+        Set<UUID> vms2 = new HashSet<UUID>(Arrays.asList(vm2, vm4, vm6));
 
-        ctrs.add(new Spread(apache, false));
-        ctrs.add(new Spread(tomcat, false));
+        ctrs.add(new Spread(vms1, false));
+        ctrs.add(new Spread(vms2, false));
 
-        ctrsC.add(new Spread(apache));
-        ctrsC.add(new Spread(tomcat));
+        ctrsC.add(new Spread(vms1));
+        ctrsC.add(new Spread(vms2));
 
         Offline off = new Offline(new HashSet<UUID>() {{
             add(n2);

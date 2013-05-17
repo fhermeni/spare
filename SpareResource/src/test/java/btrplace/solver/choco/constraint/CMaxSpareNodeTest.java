@@ -76,10 +76,8 @@ public class CMaxSpareNodeTest implements PremadeElements {
 
         Set<UUID> nodes = map.getAllNodes();
         MaxSpareNode msn = new MaxSpareNode(nodes, 0);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
@@ -110,9 +108,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         constraints.add(online);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
-        cra.setVerbosity(1);
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
-//        cra.setMaxEnd(10);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
         log.info(plan.toString());
@@ -139,11 +135,9 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3, n4));
         Online online = new Online(new HashSet<UUID>(Arrays.asList(n4, n5)));
         MaxSpareNode msn = new MaxSpareNode(nodes, 0);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
         constraints.add(online);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
@@ -171,11 +165,9 @@ public class CMaxSpareNodeTest implements PremadeElements {
 
         Online online = new Online(new HashSet<UUID>(Arrays.asList(n3)));
         MaxSpareNode msn = new MaxSpareNode(map.getAllNodes(), 0);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
         constraints.add(online);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
@@ -187,7 +179,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(groups = {"discrete"})
+    @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest6() throws SolverException {
         ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 4);
@@ -212,7 +204,6 @@ public class CMaxSpareNodeTest implements PremadeElements {
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
-        cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);
@@ -249,11 +240,9 @@ public class CMaxSpareNodeTest implements PremadeElements {
 //        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3, n4, n5));
         Online online = new Online(new HashSet<UUID>(Arrays.asList(n4, n5, n9, n10)));
         MaxSpareNode msn = new MaxSpareNode(nodes, 2);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
         constraints.add(online);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
@@ -281,17 +270,14 @@ public class CMaxSpareNodeTest implements PremadeElements {
 
         Set<UUID> nodes = map.getAllNodes();
         MaxSpareNode msn = new MaxSpareNode(nodes, 0, true);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(new Killed(new HashSet<UUID>(Arrays.asList(vm3))));
         constraints.add(msn);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(3));
         cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
-//        cra.setVerbosity(2);
         cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
@@ -315,15 +301,12 @@ public class CMaxSpareNodeTest implements PremadeElements {
 
         Set<UUID> nodes = map.getAllNodes();
         MaxSpareNode msn = new MaxSpareNode(nodes, 0, true);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(new Ban(new HashSet<UUID>(Arrays.asList(vm3)), new HashSet<UUID>(Arrays.asList(n2))));
         constraints.add(msn);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
-//        cra.setVerbosity(2);
         cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
@@ -352,24 +335,20 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Set<UUID> nodes = map.getAllNodes();
         Ban ban = new Ban(new HashSet<UUID>(Arrays.asList(vm3)), new HashSet<UUID>(Arrays.asList(n2)));
         MaxSpareNode msn = new MaxSpareNode(nodes, 1, true);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(ban);
         constraints.add(msn);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
-/*        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
+        cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(3));
-        cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));*/
+        cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
-//        cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
         log.info(plan.toString());
         log.info(plan.getResult().toString());
         Assert.assertTrue(msn.isSatisfied(plan));
-//        Assert.fail();
     }
 
     @Test(timeOut = 10000, dependsOnMethods = {"testMaxSNContinuousSimple"})
@@ -389,10 +368,8 @@ public class CMaxSpareNodeTest implements PremadeElements {
 
         MaxSpareNode msn = new MaxSpareNode(nodes, 1, true);
         Online online = new Online(new HashSet<UUID>(Arrays.asList(n3)));
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
-        constraints.add(overbook);
         constraints.add(online);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
@@ -400,7 +377,6 @@ public class CMaxSpareNodeTest implements PremadeElements {
         cra.getDurationEvaluators().register(BootNode.class, new ConstantDuration(3));
         cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(2));
-//        cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
         log.info(plan.toString());
@@ -426,11 +402,9 @@ public class CMaxSpareNodeTest implements PremadeElements {
         MaxSpareNode msn = new MaxSpareNode(nodes, 1, true);
         Online online = new Online(new HashSet<UUID>(Arrays.asList(n3)));
         Running r = new Running(new HashSet<UUID>(Arrays.asList(vm2, vm3)));
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(r);
         constraints.add(msn);
-        constraints.add(overbook);
         constraints.add(online);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
@@ -467,16 +441,13 @@ public class CMaxSpareNodeTest implements PremadeElements {
         MaxSpareNode msn = new MaxSpareNode(nodes, 1, true);
         Online online = new Online(new HashSet<UUID>(Arrays.asList(n4, n5)));
         Running r = new Running(new HashSet<UUID>(Arrays.asList(vm2, vm3)));
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(r);
         constraints.add(msn);
-        constraints.add(overbook);
         constraints.add(online);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
-//        cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
         log.info(plan.toString());

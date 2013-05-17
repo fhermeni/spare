@@ -25,7 +25,7 @@ import java.util.*;
  * Time: 2:36 PM
  */
 public class Evaluation {
-    private static final Logger log = LoggerFactory.getLogger("Evaluate");
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private static ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
     private Model model;
     private Set<SatConstraint> dis_cstr;

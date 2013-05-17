@@ -93,7 +93,7 @@ public class MaxSpareResources extends SatConstraint {
             return false;
         }
 
-        MinSpareResources that = (MinSpareResources) o;
+        MaxSpareResources that = (MaxSpareResources) o;
 
         return qty == that.getAmount() && rcId.equals(that.getResource())
                 && getInvolvedNodes().equals(that.getInvolvedNodes())

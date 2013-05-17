@@ -45,54 +45,54 @@ public class CMaxOnlines implements ChocoSatConstraint {
         CPSolver solver = rp.getSolver();
         if (constraint.isContinuous()) {
             // The constraint must be already satisfied
-            if (!constraint.isSatisfied(rp.getSourceModel())) {
+/*            if (!constraint.isSatisfied(rp.getSourceModel())) {
                 rp.getLogger().error("The constraint '{}' must be already " +
                         "satisfied to provide a continuous restriction", constraint);
                 return false;
-            } else {
-                Mapping map = rp.getSourceModel().getMapping();
-                final int NUMBER_OF_TASK = constraint.getInvolvedNodes().size();
-                int i = 0;
-                int[] nodeIdx = new int[NUMBER_OF_TASK];
-                for (UUID n : constraint.getInvolvedNodes()) {
-                    nodeIdx[i++] = rp.getNode(n);
-                }
-                IntDomainVar capacity = solver.createIntegerConstant("capacity", constraint.getAmount());
-                IntDomainVar consumption = solver.createBoundIntVar("consum", 0, constraint.getAmount());//minimum consumption
-                // of the resource
-                IntDomainVar uppBound = rp.getEnd();                    // All tasks must be scheduled before this time
-                IntDomainVar[] heights = new IntDomainVar[NUMBER_OF_TASK];   // The state of the node
-                IntDomainVar[] starts = new IntDomainVar[NUMBER_OF_TASK];
-                IntDomainVar[] ends = new IntDomainVar[NUMBER_OF_TASK];
-                IntDomainVar[] Durations = new IntDomainVar[NUMBER_OF_TASK];  // Online duration
-                TaskVar[] task_vars = new TaskVar[NUMBER_OF_TASK];  // Online duration is modeled as a task
-
-                for (int idx = 0; idx < nodeIdx.length; idx++) {
-                    UUID n = rp.getNode(nodeIdx[idx]);
-                    NodeActionModel nodeAction = rp.getNodeAction(n);
-
-
-                    if (map.getOfflineNodes().contains(n)) {             // Nodes can be turned on
-                        BootableNodeModel b = (BootableNodeModel) nodeAction;
-                        starts[idx] = b.getPoweringStart();
-                        ends[idx] = b.getPoweringEnd();
-                    } else {                                             // Nodes can be turned off
-                        ShutdownableNodeModel sd = (ShutdownableNodeModel) nodeAction;
-                        starts[idx] = sd.getPoweringStart();
-                        ends[idx] = sd.getPoweringEnd();
-                    }
-
-                    Durations[idx] = rp.makeUnboundedDuration("Dur(" + n + ")");
-                    solver.post(solver.leq(Durations[idx], rp.getEnd()));
-                    heights[idx] = solver.makeConstantIntVar(1);         // All tasks have to be scheduled
-                    task_vars[idx] = solver.createTaskVar("Task_" + n, starts[idx], ends[idx], Durations[idx]);
-                    solver.post(solver.eq(ends[idx], solver.plus(starts[idx], Durations[idx])));
-                }
-                Cumulative cumulative = new Cumulative(solver, "Cumulative", task_vars,
-                        heights, consumption, capacity, uppBound);
-                solver.post(cumulative);
+            } else {*/
+            Mapping map = rp.getSourceModel().getMapping();
+            final int NUMBER_OF_TASK = constraint.getInvolvedNodes().size();
+            int i = 0;
+            int[] nodeIdx = new int[NUMBER_OF_TASK];
+            for (UUID n : constraint.getInvolvedNodes()) {
+                nodeIdx[i++] = rp.getNode(n);
             }
+            IntDomainVar capacity = solver.createIntegerConstant("capacity", constraint.getAmount());
+            IntDomainVar consumption = solver.createBoundIntVar("consum", 0, constraint.getAmount());//minimum consumption
+            // of the resource
+            IntDomainVar uppBound = rp.getEnd();                    // All tasks must be scheduled before this time
+            IntDomainVar[] heights = new IntDomainVar[NUMBER_OF_TASK];   // The state of the node
+            IntDomainVar[] starts = new IntDomainVar[NUMBER_OF_TASK];
+            IntDomainVar[] ends = new IntDomainVar[NUMBER_OF_TASK];
+            IntDomainVar[] Durations = new IntDomainVar[NUMBER_OF_TASK];  // Online duration
+            TaskVar[] task_vars = new TaskVar[NUMBER_OF_TASK];  // Online duration is modeled as a task
+
+            for (int idx = 0; idx < nodeIdx.length; idx++) {
+                UUID n = rp.getNode(nodeIdx[idx]);
+                NodeActionModel nodeAction = rp.getNodeAction(n);
+
+
+                if (map.getOfflineNodes().contains(n)) {             // Nodes can be turned on
+                    BootableNodeModel b = (BootableNodeModel) nodeAction;
+                    starts[idx] = b.getPoweringStart();
+                    ends[idx] = b.getPoweringEnd();
+                } else {                                             // Nodes can be turned off
+                    ShutdownableNodeModel sd = (ShutdownableNodeModel) nodeAction;
+                    starts[idx] = sd.getPoweringStart();
+                    ends[idx] = sd.getPoweringEnd();
+                }
+
+                Durations[idx] = rp.makeUnboundedDuration("Dur(" + n + ")");
+                solver.post(solver.leq(Durations[idx], rp.getEnd()));
+                heights[idx] = solver.makeConstantIntVar(1);         // All tasks have to be scheduled
+                task_vars[idx] = solver.createTaskVar("Task_" + n, starts[idx], ends[idx], Durations[idx]);
+                solver.post(solver.eq(ends[idx], solver.plus(starts[idx], Durations[idx])));
+            }
+            Cumulative cumulative = new Cumulative(solver, "Cumulative", task_vars,
+                    heights, consumption, capacity, uppBound);
+            solver.post(cumulative);
         }
+//        }
         // Constraint for discrete model
         List<IntDomainVar> nodes_state = new ArrayList<IntDomainVar>(constraint.getInvolvedNodes().size());
 

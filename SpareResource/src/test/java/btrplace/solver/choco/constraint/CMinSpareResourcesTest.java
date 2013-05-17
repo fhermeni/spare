@@ -23,7 +23,7 @@ import java.util.*;
 
 public class CMinSpareResourcesTest implements PremadeElements {
 
-    private static final Logger log = LoggerFactory.getLogger("TEST");
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Test(timeOut = 10000)
     public void testCMinSpareResourcesDiscrete() throws SolverException {
@@ -44,11 +44,9 @@ public class CMinSpareResourcesTest implements PremadeElements {
 
         Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MinSpareResources c = new MinSpareResources(setn1, "vcpu", 3);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
@@ -79,12 +77,10 @@ public class CMinSpareResourcesTest implements PremadeElements {
         Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MinSpareResources c = new MinSpareResources(setn1, "vcpu", 3);
         MinSpareResources c2 = new MinSpareResources(new HashSet<UUID>(Arrays.asList(n2)), "vcpu", 1);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c2);
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
@@ -209,10 +205,8 @@ public class CMinSpareResourcesTest implements PremadeElements {
         Running cr = new Running(new HashSet<UUID>(Arrays.asList(vm7)));
         MinSpareResources c = new MinSpareResources(setn1, "vcpu", 3, true);
         MinSpareResources c2 = new MinSpareResources(new HashSet<UUID>(Arrays.asList(n2)), "vcpu", 1, true);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1, true);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
-        l.add(oc);
         l.add(cr);
         l.add(c);
         l.add(c2);
@@ -229,7 +223,7 @@ public class CMinSpareResourcesTest implements PremadeElements {
     }
 
     @Test(timeOut = 10000)
-    public void testwithOverBook() throws SolverException {
+    public void complexDiscreteTest() throws SolverException {
 
         Mapping m = new MappingBuilder().on(n1, n2, n3)
                 .run(n1, vm1, vm3)
@@ -249,13 +243,11 @@ public class CMinSpareResourcesTest implements PremadeElements {
         mo.attach(rc);
 
         Running cr = new Running(new HashSet<UUID>(Arrays.asList(vm7)));
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
         MinSpareResources c2 = new MinSpareResources(new HashSet<UUID>(Arrays.asList(n2)), "vcpu", 1);
 
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c2);
-        l.add(oc);
         l.add(cr);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
@@ -284,14 +276,12 @@ public class CMinSpareResourcesTest implements PremadeElements {
         mo.attach(rc);
 
         Running cr = new Running(new HashSet<UUID>(Arrays.asList(vm7)));
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
         MinSpareResources c2 = new MinSpareResources(m.getAllNodes(), "vcpu", 1);
         Set<UUID> node12 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MinSpareResources c3 = new MinSpareResources(node12, "vcpu", 2);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c2);
-        l.add(oc);
         l.add(cr);
         l.add(c3);
 
@@ -323,14 +313,12 @@ public class CMinSpareResourcesTest implements PremadeElements {
 
 
         Running cr = new Running(new HashSet<UUID>(Arrays.asList(vm7)));
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
         MinSpareResources c2 = new MinSpareResources(m.getAllNodes(), "vcpu", 6);
         Set<UUID> node12 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MinSpareResources c3 = new MinSpareResources(node12, "vcpu", 3);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c2);
-        l.add(oc);
         l.add(cr);
         l.add(c3);
 

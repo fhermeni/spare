@@ -13,6 +13,7 @@ import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
 import btrplace.test.PremadeElements;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
@@ -28,7 +29,7 @@ import java.util.UUID;
  */
 public class SpreadEvaluation implements PremadeElements {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger("Evaluation");
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Test
     public void spreadBasicEvaluation() {

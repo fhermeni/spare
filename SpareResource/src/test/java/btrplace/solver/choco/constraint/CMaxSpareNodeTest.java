@@ -25,7 +25,7 @@ import java.util.*;
 
 public class CMaxSpareNodeTest implements PremadeElements {
 
-    private static final Logger log = LoggerFactory.getLogger("TEST");
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest1() throws SolverException {
@@ -187,7 +187,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(timeOut = 10000, groups = {"discrete"})
+    @Test(groups = {"discrete"})
     public void discreteMaxSpareNodeTest6() throws SolverException {
         ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 4);
@@ -206,11 +206,9 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3, n4, n5));
         Online online = new Online(new HashSet<UUID>(Arrays.asList(n4, n5)));
         MaxSpareNode msn = new MaxSpareNode(nodes, 0);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
         constraints.add(online);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());

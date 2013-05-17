@@ -1,10 +1,7 @@
 package btrplace.model.constraint;
 
-import btrplace.model.Model;
 import btrplace.model.constraint.checker.MaxOnlinesChecker;
 import btrplace.model.constraint.checker.SatConstraintChecker;
-import btrplace.plan.ReconfigurationPlan;
-import btrplace.plan.event.Action;
 
 import java.util.Collections;
 import java.util.Set;
@@ -55,24 +52,6 @@ public class MaxOnlines extends SatConstraint {
      */
     public int getAmount() {
         return qty;
-    }
-
-    @Override
-    public boolean isSatisfied(ReconfigurationPlan p) {
-        Model mo = p.getOrigin();
-        if (!isSatisfied(mo)) {
-            return false;
-        }
-        mo = p.getOrigin().clone();
-        for (Action a : p) {
-            if (!a.apply(mo)) {
-                return false;
-            }
-            if (!isSatisfied(mo)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override

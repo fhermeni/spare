@@ -32,7 +32,7 @@ public class MaxOnlinesChecker extends AllowAllConstraintChecker<MaxOnlines> {
         Set<UUID> nodes = new HashSet<UUID>(onnodes);
         nodes.retainAll(super.getNodes());
 
-        return (nodes.size() > super.getConstraint().getAmount());
+        return (nodes.size() <= super.getConstraint().getAmount());
     }
 
     @Override

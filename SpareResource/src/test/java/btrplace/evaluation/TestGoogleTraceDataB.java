@@ -10,6 +10,7 @@ import btrplace.plan.ReconfigurationPlan;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -24,7 +25,7 @@ import java.util.*;
  */
 public class TestGoogleTraceDataB {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger("TestTraceReader");
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String filepath = "/user/hdang/home/Downloads/google_trace/dataB/";
 
     @Test

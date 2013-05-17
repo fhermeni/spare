@@ -2,9 +2,9 @@ package btrplace.model.constraint;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
+import btrplace.model.constraint.checker.MinSpareResourcesChecker;
+import btrplace.model.constraint.checker.SatConstraintChecker;
 import btrplace.model.view.ShareableResource;
-import btrplace.plan.ReconfigurationPlan;
-import btrplace.plan.event.Action;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -113,24 +113,6 @@ public class MinSpareResources extends SatConstraint {
     }
 
     @Override
-    public boolean isSatisfied(ReconfigurationPlan p) {
-        Model mo = p.getOrigin();
-        if (!isSatisfied(mo)) {
-            return false;
-        }
-        mo = p.getOrigin().clone();
-        for (Action a : p) {
-            if (!a.apply(mo)) {
-                return false;
-            }
-            if (!isSatisfied(mo)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -172,6 +154,11 @@ public class MinSpareResources extends SatConstraint {
         b.append(')');
 
         return b.toString();
+    }
+
+    @Override
+    public SatConstraintChecker getChecker() {
+        return new MinSpareResourcesChecker(this);
     }
 
 }

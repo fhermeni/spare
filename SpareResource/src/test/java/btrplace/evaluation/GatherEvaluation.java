@@ -3,6 +3,7 @@ package btrplace.evaluation;
 import btrplace.model.Model;
 import btrplace.model.constraint.Gather;
 import btrplace.model.constraint.SatConstraint;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
@@ -17,7 +18,7 @@ import java.util.UUID;
  */
 public class GatherEvaluation {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger("Evaluation");
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Test
     public void gatherTest1() {

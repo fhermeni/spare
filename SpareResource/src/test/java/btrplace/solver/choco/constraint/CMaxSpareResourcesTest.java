@@ -5,7 +5,6 @@ import btrplace.model.Mapping;
 import btrplace.model.Model;
 import btrplace.model.constraint.Killed;
 import btrplace.model.constraint.MaxSpareResources;
-import btrplace.model.constraint.Overbook;
 import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
@@ -25,7 +24,7 @@ import java.util.*;
 
 public class CMaxSpareResourcesTest implements PremadeElements {
 
-    private static final Logger log = LoggerFactory.getLogger("TEST");
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Test
     public void testCMaxSpareResourcesDiscrete1() throws SolverException {
@@ -46,11 +45,9 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 2);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
@@ -85,11 +82,9 @@ public class CMaxSpareResourcesTest implements PremadeElements {
         Set<UUID> setn2 = new HashSet<UUID>(Arrays.asList(n4, n5));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 3);
         MaxSpareResources c2 = new MaxSpareResources(setn2, "vcpu", 3);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c);
-        l.add(oc);
         l.add(c2);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
@@ -121,11 +116,9 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2, n3));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 5);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
@@ -155,11 +148,9 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Set<UUID> setn1 = new HashSet<UUID>(Arrays.asList(n1, n2));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 5);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> l = new ArrayList<SatConstraint>();
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
@@ -187,11 +178,9 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Killed cKilled = new Killed(new HashSet<UUID>(Arrays.asList(vm1)));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 2);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
         c.setContinuous(true);
         l.add(cKilled);
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
@@ -231,11 +220,9 @@ public class CMaxSpareResourcesTest implements PremadeElements {
 
         Killed cKilled = new Killed(new HashSet<UUID>(Arrays.asList(vm1)));
         MaxSpareResources c = new MaxSpareResources(setn1, "vcpu", 2);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
         c.setContinuous(true);
         l.add(cKilled);
         l.add(c);
-        l.add(oc);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());

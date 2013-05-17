@@ -3,7 +3,10 @@ package btrplace.solver.choco.constraint;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.constraint.*;
+import btrplace.model.constraint.MinSpareNode;
+import btrplace.model.constraint.Online;
+import btrplace.model.constraint.Running;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.BootNode;
@@ -16,12 +19,17 @@ import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
 import btrplace.solver.choco.durationEvaluator.ConstantDuration;
 import btrplace.test.PremadeElements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
 public class CMinSpareNodeTest implements PremadeElements {
+
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
     @Test(timeOut = 10000)
     public void discreteMinSpareNodeTest1() throws SolverException {
 
@@ -40,19 +48,17 @@ public class CMinSpareNodeTest implements PremadeElements {
         model.attach(resources);
         Set<UUID> nodes = map.getAllNodes();
         MinSpareNode msn = new MinSpareNode(nodes, 1);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
 
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
@@ -75,19 +81,17 @@ public class CMinSpareNodeTest implements PremadeElements {
 
         Set<UUID> nodes = map.getAllNodes();
         MinSpareNode msn = new MinSpareNode(nodes, 2);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
@@ -108,19 +112,17 @@ public class CMinSpareNodeTest implements PremadeElements {
         model.attach(resources);
 
         MinSpareNode msn = new MinSpareNode(map.getAllNodes(), 1);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
@@ -141,20 +143,17 @@ public class CMinSpareNodeTest implements PremadeElements {
         model.attach(resources);
 
         MinSpareNode msn = new MinSpareNode(map.getAllNodes(), 2);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
 
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-        //cra.setVerbosity(1);
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
@@ -176,22 +175,19 @@ public class CMinSpareNodeTest implements PremadeElements {
         model.attach(resources);
         Set<UUID> nodes = map.getAllNodes();
         MinSpareNode msn = new MinSpareNode(nodes, 1, true);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         Running run = new Running(new HashSet<UUID>(Arrays.asList(vm3)));
 
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(msn);
-        constraints.add(overbook);
         constraints.add(run);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-        //cra.setVerbosity(2);
         cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
         Assert.assertTrue(msn.isSatisfied(plan));
     }
 
@@ -210,9 +206,7 @@ public class CMinSpareNodeTest implements PremadeElements {
         Set<UUID> nodes = map.getAllNodes();
         Running running = new Running(new HashSet<UUID>(Arrays.asList(vm3)));
         MinSpareNode msn = new MinSpareNode(nodes, 1, true);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
-        constraints.add(overbook);
         constraints.add(running);
         constraints.add(msn);
 
@@ -221,13 +215,11 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(3));
         cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-        //cra.setVerbosity(2);
         cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertTrue(msn.isSatisfied(plan));
-        System.out.println(plan);
-        System.out.println(plan.getResult());
-//        Assert.fail();
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
     }
 
     @Test(timeOut = 10000)
@@ -248,11 +240,9 @@ public class CMinSpareNodeTest implements PremadeElements {
         Set<UUID> nodes = map.getAllNodes();
         Running running = new Running(new HashSet<UUID>(Arrays.asList(vm5, vm6)));
         MinSpareNode msn = new MinSpareNode(nodes, 1, true);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(running);
         constraints.add(msn);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
@@ -260,13 +250,12 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(3));
         cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-//        //cra.setVerbosity(2);
         cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
         Assert.assertTrue(msn.isSatisfied(plan));
-        System.out.println(plan);
-        System.out.println(plan.getResult());
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
     }
 
     @Test(timeOut = 10000)
@@ -287,11 +276,9 @@ public class CMinSpareNodeTest implements PremadeElements {
         Set<UUID> nodes = map.getAllNodes();
         Running running = new Running(new HashSet<UUID>(Arrays.asList(vm5, vm6, vm7)));
         MinSpareNode msn = new MinSpareNode(nodes, 1, true);
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(running);
         constraints.add(msn);
-        constraints.add(overbook);
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
@@ -300,12 +287,11 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
         cra.setMaxEnd(10);
-//        //cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
         Assert.assertTrue(msn.isSatisfied(plan));
-        System.out.println(plan);
-        System.out.println(plan.getResult());
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
     }
 
     @Test(timeOut = 10000)
@@ -331,7 +317,6 @@ public class CMinSpareNodeTest implements PremadeElements {
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(runvms);
         constraints.add(msn);
-        constraints.add(new Overbook(map.getAllNodes(), "vcpu", 1));
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
@@ -339,12 +324,11 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(2));
         cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-        //cra.setVerbosity(2);
         cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertTrue(msn.isSatisfied(plan));
-        System.out.println(plan);
-        System.out.println(plan.getResult());
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
     }
 
     @Test(timeOut = 20000)
@@ -370,7 +354,6 @@ public class CMinSpareNodeTest implements PremadeElements {
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(runvms);
         constraints.add(msn);
-        constraints.add(new Overbook(map.getAllNodes(), "vcpu", 1));
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getDurationEvaluators().register(ShutdownNode.class, new ConstantDuration(4));
@@ -378,12 +361,11 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.getDurationEvaluators().register(MigrateVM.class, new ConstantDuration(2));
         cra.getDurationEvaluators().register(KillVM.class, new ConstantDuration(2));
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
-        //cra.setVerbosity(2);
         cra.setMaxEnd(15);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertTrue(msn.isSatisfied(plan));
-        System.out.println(plan);
-        System.out.println(plan.getResult());
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
     }
 
 
@@ -412,11 +394,9 @@ public class CMinSpareNodeTest implements PremadeElements {
 
         Online online = new Online(new HashSet<UUID>(Arrays.asList(n4, n5)));
         Running r = new Running(new HashSet<UUID>(Arrays.asList(vm2, vm3)));
-        Overbook overbook = new Overbook(map.getAllNodes(), "vcpu", 1);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
         constraints.add(r);
         constraints.add(msn);
-        constraints.add(overbook);
         constraints.add(online);
         constraints.add(minSpareNode);
 
@@ -424,11 +404,10 @@ public class CMinSpareNodeTest implements PremadeElements {
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
         cra.getSatConstraintMapper().register(new CMinSpareNode.Builder());
         cra.setMaxEnd(20);
-//        ////cra.setVerbosity(2);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        System.out.println(plan.toString());
-        System.out.println(plan.getResult().getMapping().toString());
+        log.info(plan.toString());
+        log.info(plan.getResult().getMapping().toString());
         Assert.assertTrue(msn.isSatisfied(plan));
         Assert.assertTrue(minSpareNode.isSatisfied(plan));
     }

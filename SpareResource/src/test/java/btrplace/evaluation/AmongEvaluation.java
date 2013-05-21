@@ -3,16 +3,12 @@ package btrplace.evaluation;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.constraint.Among;
-import btrplace.model.constraint.CumulatedRunningCapacity;
-import btrplace.model.constraint.SatConstraint;
-import btrplace.model.constraint.Spread;
+import btrplace.model.constraint.*;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
-import btrplace.test.PremadeElements;
 import junit.framework.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +21,7 @@ import java.util.*;
  * Date: 5/17/13
  * Time: 11:02 AM
  */
-public class AmongEvaluation implements PremadeElements {
+public class AmongEvaluation extends Datacenter {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -50,7 +46,7 @@ public class AmongEvaluation implements PremadeElements {
         Collection<SatConstraint> ctrs = new HashSet<SatConstraint>();
         ctrs.add(among);
         ctrs.add(new Spread(vms2));
-        ctrs.add(new CumulatedRunningCapacity(map.getAllNodes(), 2));
+        ctrs.add(new SingleRunningCapacity(map.getAllNodes(), 2));
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         try {
@@ -65,7 +61,38 @@ public class AmongEvaluation implements PremadeElements {
         } catch (SolverException e) {
             log.error(e.toString());
         }
+    }
 
+    @Test
+    public void TestWebAppAmong() {
+        Datacenter center = new Datacenter();
+        WebApplication wapp = new WebApplication();
+        Mapping map = new MappingBuilder().on(n1, n2, n3, n4, n5, n6, n8, n9, n11, n12).off(n2, n7, n10)
+                .ready(vm1, vm2, vm3, vm4, vm5, vm6, vm7, vm8, vm9, vm10).build();
+        Model model = new DefaultModel(map);
 
+        Set<Set<UUID>> nodeSets = new HashSet<Set<UUID>>();
+        nodeSets.add(center.getRack2());
+        nodeSets.add(center.getRack3());
+
+        Collection<SatConstraint> constr = new HashSet<SatConstraint>();
+        Running run = new Running(wapp.getAllReplicas());
+        constr.add(run);
+        constr.add(new Among(wapp.getMysql(), nodeSets));
+        for (Set<UUID> set : wapp.getAllTiers()) {
+            constr.add(new Spread(set));
+        }
+
+        ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        try {
+            ReconfigurationPlan plan = cra.solve(model, constr);
+            Assert.assertNotNull(plan);
+            Assert.assertTrue(EvaluationTools.satisfy(plan, constr));
+
+            log.info(plan.toString());
+            log.info(plan.getResult().toString());
+        } catch (SolverException e) {
+            log.error(e.toString());
+        }
     }
 }

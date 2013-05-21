@@ -24,7 +24,7 @@ import java.util.*;
  * Date: 5/7/13
  * Time: 2:36 PM
  */
-public class Evaluation {
+public class ShutdownEvaluation {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private static ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
     private Model model;
@@ -34,7 +34,7 @@ public class Evaluation {
     private static FileWriter fw_dp;
     private static FileWriter fw_cp;
 
-    public Evaluation(Model m, Set<SatConstraint> d, Set<SatConstraint> c) {
+    public ShutdownEvaluation(Model m, Set<SatConstraint> d, Set<SatConstraint> c) {
         model = m;
         dis_cstr = d;
         cont_cstr = c;

@@ -3,7 +3,7 @@ package btrplace.evaluation;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.constraint.Offline;
+import btrplace.model.constraint.MinSpareResources;
 import btrplace.model.constraint.SatConstraint;
 import btrplace.model.constraint.Spread;
 import btrplace.model.view.ShareableResource;
@@ -12,15 +12,13 @@ import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
+import btrplace.solver.choco.constraint.CMinSpareResources;
 import btrplace.test.PremadeElements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * User: TU HUYNH DANG
@@ -58,31 +56,23 @@ public class SpreadEvaluation implements PremadeElements {
         model.attach(mem);
         log.info(model.toString());
 
-        Set<SatConstraint> ctrs = new HashSet<SatConstraint>();
         Set<SatConstraint> ctrsC = new HashSet<SatConstraint>();
         Set<UUID> vms1 = new HashSet<UUID>(Arrays.asList(vm1, vm3, vm5));
         Set<UUID> vms2 = new HashSet<UUID>(Arrays.asList(vm2, vm4, vm6));
 
-        ctrs.add(new Spread(vms1, false));
-        ctrs.add(new Spread(vms2, false));
-
         ctrsC.add(new Spread(vms1));
         ctrsC.add(new Spread(vms2));
-
-        Offline off = new Offline(new HashSet<UUID>() {{
-            add(n2);
-        }});
-        ctrs.add(off);
-        ctrsC.add(off);
+        ctrsC.add(new MinSpareResources(Collections.singleton(n1), "cpu", 2));
+        //      Offline off = new Offline(Collections.singleton(n2));
+        //    ctrsC.add(off);
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
+        cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
         try {
-            ReconfigurationPlan dp = cra.solve(model, ctrs);
+            ReconfigurationPlan dp = cra.solve(model, ctrsC);
+
             if (!satisfy(dp, ctrsC)) {
-                ReconfigurationPlan cp = cra.solve(model, ctrsC);
-                if (!satisfy(cp, ctrsC)) {
-                    log.info("Not found continuous plan");
-                } else log.info(cp.toString());
-            }
+                log.info("Not found continuous plan");
+            } else log.info(dp.toString());
         } catch (SolverException e) {
             e.printStackTrace();
         }
@@ -119,7 +109,7 @@ public class SpreadEvaluation implements PremadeElements {
         ctrsC.add(new Spread(mysql));
         log.info(m.toString());
         log.info(ctrs.toString());
-        Evaluation ev = new Evaluation(m, ctrs, ctrsC);
+        ShutdownEvaluation ev = new ShutdownEvaluation(m, ctrs, ctrsC);
         ev.evaluate();
     }
 

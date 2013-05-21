@@ -64,7 +64,7 @@ public class SplitAmongEvaluation {
 //        ctrsC.add(new Spread(tomcat, false));
         ctrsC.add(new SplitAmong(vm_set, node_set, true));
 
-        Evaluation ev = new Evaluation(m, ctrs, ctrsC);
+        ShutdownEvaluation ev = new ShutdownEvaluation(m, ctrs, ctrsC);
         ev.evaluate();
     }
 
@@ -103,8 +103,8 @@ public class SplitAmongEvaluation {
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
         Assert.assertTrue(saC.isSatisfied(result));
-        Evaluation evaluation = new Evaluation(result, dis_cstrs, cont_cstrs);
-        evaluation.evaluate();
+        ShutdownEvaluation shutdownEvaluation = new ShutdownEvaluation(result, dis_cstrs, cont_cstrs);
+        shutdownEvaluation.evaluate();
     }
 
     @Test
@@ -140,8 +140,8 @@ public class SplitAmongEvaluation {
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
         Assert.assertTrue(saC.isSatisfied(result));
-        Evaluation evaluation = new Evaluation(result, dis_cstrs, cont_cstrs);
-        evaluation.evaluate();
+        ShutdownEvaluation shutdownEvaluation = new ShutdownEvaluation(result, dis_cstrs, cont_cstrs);
+        shutdownEvaluation.evaluate();
     }
 
     @Test
@@ -176,8 +176,8 @@ public class SplitAmongEvaluation {
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
         Assert.assertTrue(saC.isSatisfied(result));
-        Evaluation evaluation = new Evaluation(result, dis_cstrs, cont_cstrs);
-        evaluation.evaluate();
+        ShutdownEvaluation shutdownEvaluation = new ShutdownEvaluation(result, dis_cstrs, cont_cstrs);
+        shutdownEvaluation.evaluate();
     }
 
     @Test

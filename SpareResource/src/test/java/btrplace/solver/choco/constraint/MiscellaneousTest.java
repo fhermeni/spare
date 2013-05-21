@@ -329,4 +329,50 @@ public class MiscellaneousTest implements PremadeElements {
         log.info(plan.getResult().toString());
 
     }
+
+    @Test
+    public void testSatisfiedWithAmount0() throws SolverException, ContradictionException {
+
+        Mapping map = new MappingBuilder().on(n1, n2, n3).off(n4, n5)
+                .run(n1, vm5, vm6)
+                .run(n2, vm1, vm2).build();
+
+        Model model = new DefaultModel(map);
+
+//        ChocoLogging.setVerbosity(Verbosity.SEARCH);
+        ReconfigurationProblem rp = new DefaultReconfigurationProblemBuilder(model)
+                .labelVariables()
+                .build();
+
+        rp.getNodeAction(n4).getState().setVal(1);
+        rp.getNodeAction(n5).getState().setVal(1);
+
+        int NUMBER_OF_NODE = map.getAllNodes().size();
+
+        IntDomainVar[] hostVM = rp.getNbRunningVMs();
+        IntDomainVar[] vmsOnNodes = new IntDomainVar[NUMBER_OF_NODE]; // Each element is the number of VMs on each node
+        IntDomainVar[] idles = new IntDomainVar[NUMBER_OF_NODE];
+        int i = 0;
+        int maxVMs = rp.getSourceModel().getMapping().getAllVMs().size();
+        for (UUID n : map.getAllNodes()) {
+            vmsOnNodes[i] = rp.getSolver().createBoundIntVar("nVMs" + n, -1, maxVMs);
+            IntDomainVar state = rp.getNodeAction(n).getState();
+            // If the node is offline -> the temporary variable is 1, otherwise, it equals the number of VMs on that node
+            IntDomainVar[] c = new IntDomainVar[]{rp.getSolver().makeConstantIntVar(-1), hostVM[rp.getNode(n)],
+                    state, vmsOnNodes[i]};
+            rp.getSolver().post(new ElementV(c, 0, rp.getSolver().getEnvironment()));
+            // IF number of VMs on a node is 0 -> idle
+            idles[i] = rp.getSolver().createBooleanVar("idle" + n);
+            postIfOnlyIf(rp.getSolver(), idles[i], rp.getSolver().eq(vmsOnNodes[i], 0));
+            i++;
+        }
+        IntExp Sidle = rp.getSolver().sum(idles);
+        rp.getSolver().post(rp.getSolver().leq(Sidle, 0));
+        //------------------------------------------------
+
+        ReconfigurationPlan plan = rp.solve(0, false);
+        Assert.assertNotNull(plan);
+        log.info(plan.toString());
+        log.info(plan.getResult().toString());
+    }
 }

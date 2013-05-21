@@ -38,7 +38,7 @@ public class GatherEvaluation {
         ctrsC.add(new Gather(mysql, true));
         log.info(m.toString());
         log.info(ctrs.toString());
-        Evaluation ev = new Evaluation(m, ctrs, ctrsC);
+        ShutdownEvaluation ev = new ShutdownEvaluation(m, ctrs, ctrsC);
         ev.evaluate();
     }
 }

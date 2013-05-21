@@ -179,13 +179,15 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(timeOut = 10000, groups = {"discrete"})
+    @Test(groups = {"discrete"})
     public void discreteMaxSpareNodeTest6() throws SolverException {
-        ShareableResource resources = new ShareableResource("vcpu", 1);
+/*        ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 4);
         resources.set(n2, 8);
         resources.set(n3, 2);
-        resources.set(vm4, 2);
+        resources.set(n4, 2);
+        resources.set(n5, 2);
+        resources.set(vm4, 2);*/
 
         Mapping map = new MappingBuilder().on(n1, n2, n3).off(n4, n5)
                 .run(n1, vm5, vm6)
@@ -193,9 +195,9 @@ public class CMaxSpareNodeTest implements PremadeElements {
 
 
         Model model = new DefaultModel(map);
-        model.attach(resources);
+//        model.attach(resources);
 
-        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3, n4, n5));
+        Set<UUID> nodes = map.getAllNodes();
         Online online = new Online(new HashSet<UUID>(Arrays.asList(n4, n5)));
         MaxSpareNode msn = new MaxSpareNode(nodes, 0);
         List<SatConstraint> constraints = new ArrayList<SatConstraint>();
@@ -212,7 +214,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(timeOut = 10000, groups = {"discrete"})
+    @Test(groups = {"discrete"})
     public void discreteMaxSpareNodeTestMassive() throws SolverException {
 
         UUID n6 = UUID.randomUUID();
@@ -225,6 +227,13 @@ public class CMaxSpareNodeTest implements PremadeElements {
         resources.set(n1, 4);
         resources.set(n2, 8);
         resources.set(n3, 2);
+        resources.set(n4, 2);
+        resources.set(n5, 4);
+        resources.set(n6, 8);
+        resources.set(n7, 2);
+        resources.set(n8, 4);
+        resources.set(n9, 8);
+        resources.set(n10, 2);
         resources.set(vm4, 2);
 
         Mapping map = new MappingBuilder().on(n1, n2, n3, n6, n7, n8).off(n4, n5, n9, n10)

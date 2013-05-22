@@ -3,7 +3,7 @@ package btrplace.evaluation;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.constraint.MinSpareResources;
+import btrplace.model.constraint.Offline;
 import btrplace.model.constraint.SatConstraint;
 import btrplace.model.constraint.Spread;
 import btrplace.model.view.ShareableResource;
@@ -16,6 +16,7 @@ import btrplace.solver.choco.constraint.CMinSpareResources;
 import btrplace.test.PremadeElements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -29,7 +30,7 @@ public class SpreadEvaluation implements PremadeElements {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @Test  // Gist: https://gist.github.com/tudang/5599099
+    @Test(timeOut = 10000)  // Gist: https://gist.github.com/tudang/5599099
     public void spreadBasicEvaluation() {
         Mapping map = new MappingBuilder().on(n1, n2, n3, n4)
                 .run(n1, vm1, vm2)
@@ -54,47 +55,37 @@ public class SpreadEvaluation implements PremadeElements {
         Model model = new DefaultModel(map);
         model.attach(cpu);
         model.attach(mem);
-        log.info(model.toString());
+        Model clone = model.clone();
 
-        Set<SatConstraint> ctrsC = new HashSet<SatConstraint>();
+        Assert.assertEquals(model, clone);
+        Set<SatConstraint> cList = new HashSet<SatConstraint>();
+        Set<SatConstraint> dList = new HashSet<SatConstraint>();
         Set<UUID> vms1 = new HashSet<UUID>(Arrays.asList(vm1, vm3, vm5));
         Set<UUID> vms2 = new HashSet<UUID>(Arrays.asList(vm2, vm4, vm6));
 
-        ctrsC.add(new Spread(vms1));
-        ctrsC.add(new Spread(vms2));
-        ctrsC.add(new MinSpareResources(Collections.singleton(n1), "cpu", 2));
-        //      Offline off = new Offline(Collections.singleton(n2));
-        //    ctrsC.add(off);
+        cList.add(new Spread(vms1));
+        dList.add(new Spread(vms1, false));
+        cList.add(new Spread(vms2));
+        dList.add(new Spread(vms2, false));
+        cList.add(new Offline(Collections.singleton(n2)));
+        dList.add(new Offline(Collections.singleton(n2)));
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMinSpareResources.Builder());
-        try {
-            ReconfigurationPlan dp = cra.solve(model, ctrsC);
 
-            if (!satisfy(dp, ctrsC)) {
-                log.info("Not found continuous plan");
-            } else log.info(dp.toString());
-        } catch (SolverException e) {
-            e.printStackTrace();
-        }
+        ReconfigurationPlan planD = EvaluationTools.solve(cra, clone, dList);
+        ReconfigurationPlan planC = EvaluationTools.solve(cra, model, cList);
+        String analyze = EvaluationTools.analyze(planD, planC);
+        System.out.println(analyze);
+
+        Assert.assertEquals(model, clone);
+
+
     }
 
-    private boolean satisfy(ReconfigurationPlan dp, Set<SatConstraint> constraints) {
-
-        for (SatConstraint sc : constraints) {
-            if (sc.isSatisfied(dp)) {
-                log.info("Satisfy: " + sc);
-            } else {
-                log.info("Not Satisfy: " + sc);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Test
+    @Test(timeOut = 10000)
     public void spreadTest1() {
-        TestModelGenerator tm = new TestModelGenerator(10, 40);
-        Model m = tm.generateModel();
+        ModelGenerator tm = new ModelGenerator();
+        Model m = tm.generateModel(10, 40);
         Set<UUID> apache = tm.getRandomVMs(6);
         Set<UUID> tomcat = tm.getRandomVMs(3);
         Set<UUID> mysql = tm.getRandomVMs(2);
@@ -107,16 +98,15 @@ public class SpreadEvaluation implements PremadeElements {
         ctrsC.add(new Spread(apache));
         ctrsC.add(new Spread(tomcat));
         ctrsC.add(new Spread(mysql));
-        log.info(m.toString());
         log.info(ctrs.toString());
-        ShutdownEvaluation ev = new ShutdownEvaluation(m, ctrs, ctrsC);
+        HardwareFailures ev = new HardwareFailures(m, ctrs, ctrsC);
         ev.evaluate();
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void examSpreadConstraint() {
-        TestModelGenerator tm = new TestModelGenerator(2, 2);
-        Model m = tm.generateModel();
+        ModelGenerator tm = new ModelGenerator();
+        Model m = tm.generateModel(2, 2);
         Set<UUID> mysql = tm.getRandomVMs(2);
 
         Set<SatConstraint> ctrs = new HashSet<SatConstraint>();

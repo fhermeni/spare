@@ -16,7 +16,7 @@ import java.util.UUID;
  * Date: 5/15/13
  * Time: 10:09 AM
  */
-public class TestModelGenerator {
+public class ModelGenerator {
     private static int NUMBER_OF_NODE;
     private static int NUMBER_OF_VM;
 
@@ -28,21 +28,18 @@ public class TestModelGenerator {
     public static ShareableResource mems;
     private Random rand = new Random(System.nanoTime() % 100000);
 
-    public TestModelGenerator() {
-        this(5, 20);
-    }
+    public ModelGenerator() {
 
-    public TestModelGenerator(int n, int vm) {
-        NUMBER_OF_NODE = n;
-        NUMBER_OF_VM = vm;
-        nodes = new UUID[NUMBER_OF_NODE];
-        vms = new UUID[NUMBER_OF_VM];
         cpus = new ShareableResource("cpu", 1);
         mems = new ShareableResource("mem", 1);
         mapping = new DefaultMapping();
     }
 
-    public Model generateModel() {
+    public Model generateModel(int n, int vm) {
+        NUMBER_OF_NODE = n;
+        NUMBER_OF_VM = vm;
+        nodes = new UUID[NUMBER_OF_NODE];
+        vms = new UUID[NUMBER_OF_VM];
 
         int vmd[] = {1, 2, 4};
         int node_cpu_capa[] = {6, 12, 8, 16, 10, 20};

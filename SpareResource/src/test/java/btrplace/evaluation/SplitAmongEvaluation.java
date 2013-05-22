@@ -1,9 +1,6 @@
 package btrplace.evaluation;
 
 import btrplace.json.JSONConverterException;
-import btrplace.json.model.Instance;
-import btrplace.json.model.InstanceConverter;
-import btrplace.json.plan.ReconfigurationPlanConverter;
 import btrplace.model.DefaultModel;
 import btrplace.model.Model;
 import btrplace.model.constraint.Offline;
@@ -34,10 +31,10 @@ public class SplitAmongEvaluation {
     private final String filename = "/user/hdang/home/Downloads/google_trace/dataA/";
 
 
-    @Test
+    @Test(timeOut = 10000)
     public void splitAmongTest1() {
-        TestModelGenerator tm = new TestModelGenerator(10, 40);
-        Model m = tm.generateModel();
+        ModelGenerator tm = new ModelGenerator();
+        Model m = tm.generateModel(10, 40);
         Set<UUID> apache = tm.getRandomVMs(4);
         Set<UUID> tomcat = tm.getRandomVMs(3);
         Set<UUID> mysql = tm.getRandomVMs(2);
@@ -64,11 +61,11 @@ public class SplitAmongEvaluation {
 //        ctrsC.add(new Spread(tomcat, false));
         ctrsC.add(new SplitAmong(vm_set, node_set, true));
 
-        ShutdownEvaluation ev = new ShutdownEvaluation(m, ctrs, ctrsC);
+        HardwareFailures ev = new HardwareFailures(m, ctrs, ctrsC);
         ev.evaluate();
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testTraceReaderDataA1_3WithOffline3() throws IOException, SolverException {
         TraceReader tr = new TraceReader(filename + "model_a1_3.txt",
                 filename + "assignment_a1_3.txt");
@@ -103,11 +100,11 @@ public class SplitAmongEvaluation {
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
         Assert.assertTrue(saC.isSatisfied(result));
-        ShutdownEvaluation shutdownEvaluation = new ShutdownEvaluation(result, dis_cstrs, cont_cstrs);
-        shutdownEvaluation.evaluate();
+        HardwareFailures hardwareFailures = new HardwareFailures(result, dis_cstrs, cont_cstrs);
+        hardwareFailures.evaluate();
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testTraceReaderDataA1_1() throws IOException, SolverException {
         TraceReader tr = new TraceReader(filename + "model_a1_1.txt",
                 filename + "assignment_a1_1.txt");
@@ -140,11 +137,11 @@ public class SplitAmongEvaluation {
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
         Assert.assertTrue(saC.isSatisfied(result));
-        ShutdownEvaluation shutdownEvaluation = new ShutdownEvaluation(result, dis_cstrs, cont_cstrs);
-        shutdownEvaluation.evaluate();
+        HardwareFailures hardwareFailures = new HardwareFailures(result, dis_cstrs, cont_cstrs);
+        hardwareFailures.evaluate();
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testSplit() throws IOException, SolverException {
         TraceReader tr = new TraceReader(filename + "model_a1_3.txt",
                 filename + "assignment_a1_3.txt");
@@ -176,11 +173,11 @@ public class SplitAmongEvaluation {
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
         Assert.assertTrue(saC.isSatisfied(result));
-        ShutdownEvaluation shutdownEvaluation = new ShutdownEvaluation(result, dis_cstrs, cont_cstrs);
-        shutdownEvaluation.evaluate();
+        HardwareFailures hardwareFailures = new HardwareFailures(result, dis_cstrs, cont_cstrs);
+        hardwareFailures.evaluate();
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void testSplitAmongContinuous() throws IOException, SolverException, JSONConverterException {
         TraceReader tr = new TraceReader(filename + "model_a1_3.txt",
                 filename + "assignment_a1_3.txt");
@@ -209,10 +206,6 @@ public class SplitAmongEvaluation {
 
         dis_cstrs.add(sa);
         cont_cstrs.add(saC);
-
-        Instance in = new Instance(model, new ArrayList<SatConstraint>(cont_cstrs));
-        InstanceConverter ic = new InstanceConverter();
-        ReconfigurationPlanConverter planConverter = new ReconfigurationPlanConverter();
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         ReconfigurationPlan plan = cra.solve(model, dis_cstrs);

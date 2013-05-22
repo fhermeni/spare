@@ -14,7 +14,6 @@ import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.*;
@@ -31,7 +30,6 @@ public class TestGoogleTraceDataA {
     private final String filename = "/user/hdang/home/Downloads/google_trace/dataA/";
     private static Model intermediateModel;
 
-    @Test
     public void testTraceReaderDataA1_1() throws IOException, SolverException {
 
         TraceReader tr = new TraceReader(filename + "model_a1_1.txt",
@@ -46,7 +44,6 @@ public class TestGoogleTraceDataA {
         Assert.assertEquals(tr.getNumber_of_vm(), 100);
     }
 
-    @Test
     public void testTraceReaderDataA1_2() throws IOException, SolverException {
         TraceReader tr = new TraceReader(filename + "model_a1_2.txt",
                 filename + "assignment_a1_2.txt");
@@ -60,7 +57,6 @@ public class TestGoogleTraceDataA {
         Assert.assertEquals(tr.getNumber_of_balance_cost(), 0);
     }
 
-    @Test
     public void testTraceReaderDataA1_3() throws IOException, SolverException {
         TraceReader tr = new TraceReader(filename + "model_a1_3.txt",
                 filename + "assignment_a1_3.txt");
@@ -74,7 +70,6 @@ public class TestGoogleTraceDataA {
         Assert.assertEquals(tr.getNumber_of_balance_cost(), 0);
     }
 
-    @Test
     public void testTraceReaderDataA1_4() throws IOException, SolverException {
         TraceReader tr = new TraceReader(filename + "model_a1_4.txt",
                 filename + "assignment_a1_4.txt");
@@ -88,7 +83,6 @@ public class TestGoogleTraceDataA {
         Assert.assertEquals(tr.getNumber_of_balance_cost(), 1);
     }
 
-    @Test
     public void testTraceReaderDataA1_5() throws IOException, SolverException {
         TraceReader tr = new TraceReader(filename + "model_a1_5.txt",
                 filename + "assignment_a1_5.txt");
@@ -102,7 +96,6 @@ public class TestGoogleTraceDataA {
         Assert.assertEquals(tr.getNumber_of_balance_cost(), 1);
     }
 
-    @Test
     public void testTraceReaderDataA1_1WithGather() throws IOException, SolverException {
         TraceReader tr = new TraceReader(filename + "model_a1_1.txt",
                 filename + "assignment_a1_1.txt");
@@ -145,7 +138,6 @@ public class TestGoogleTraceDataA {
         Assert.assertEquals(tr.getNumber_of_vm(), 100);
     }
 
-    @Test
     public void testTraceReaderDataA1_3WithOffline() throws IOException, SolverException {
         TraceReader tr = new TraceReader(filename + "model_a1_3.txt",
                 filename + "assignment_a1_3.txt");
@@ -203,7 +195,6 @@ public class TestGoogleTraceDataA {
      * @throws IOException
      * @throws SolverException
      */
-    @Test
     public void testTraceReaderDataA1_3WithOffline2() throws IOException, SolverException {
         TraceReader tr = new TraceReader(filename + "model_a1_3.txt",
                 filename + "assignment_a1_3.txt");
@@ -264,7 +255,6 @@ public class TestGoogleTraceDataA {
      * @throws IOException
      * @throws SolverException
      */
-    @Test
     public void testTraceReaderDataA1_3WithOffline3() throws IOException, SolverException {
         TraceReader tr = new TraceReader(filename + "model_a1_3.txt",
                 filename + "assignment_a1_3.txt");

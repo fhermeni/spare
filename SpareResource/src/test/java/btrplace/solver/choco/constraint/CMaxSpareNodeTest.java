@@ -179,7 +179,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(groups = {"discrete"})
+
     public void discreteMaxSpareNodeTest6() throws SolverException {
 /*        ShareableResource resources = new ShareableResource("vcpu", 1);
         resources.set(n1, 4);
@@ -214,7 +214,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
-    @Test(groups = {"discrete"})
+
     public void discreteMaxSpareNodeTestMassive() throws SolverException {
 
         UUID n6 = UUID.randomUUID();
@@ -255,7 +255,7 @@ public class CMaxSpareNodeTest implements PremadeElements {
 
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
-        cra.repair(false);
+        cra.doRepair(false);
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);

@@ -13,7 +13,6 @@ import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.*;
@@ -28,7 +27,7 @@ public class TestGoogleTraceDataB {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String filepath = "/user/hdang/home/Downloads/google_trace/dataB/";
 
-    @Test
+
     public void testDataB_1() throws IOException, SolverException {
 
         String file = "b_1.txt";

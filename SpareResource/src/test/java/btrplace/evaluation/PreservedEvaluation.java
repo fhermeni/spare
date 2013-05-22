@@ -1,12 +1,11 @@
 package btrplace.evaluation;
 
-import btrplace.model.DefaultModel;
-import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.constraint.*;
+import btrplace.model.constraint.Among;
+import btrplace.model.constraint.Preserve;
+import btrplace.model.constraint.SatConstraint;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
-import btrplace.solver.choco.MappingBuilder;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -16,13 +15,13 @@ import java.util.*;
  * Date: 5/21/13
  * Time: 11:36 PM
  */
-public class PreservedEvaluation extends Datacenter {
+public class PreservedEvaluation {
 
-    @Test
+    @Test(timeOut = 10000)
     public void test1() {
 
-        TestModelGenerator tmg = new TestModelGenerator(100, 400);
-        Model model = tmg.generateModel();
+        ModelGenerator tmg = new ModelGenerator();
+        Model model = tmg.generateModel(100, 400);
         ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
         Set<SatConstraint> constraints = preserveConstraints(model);
         cra.doOptimize(true);
@@ -31,10 +30,10 @@ public class PreservedEvaluation extends Datacenter {
         EvaluationTools.solve(cra, model, constraints);
     }
 
-    @Test
+    @Test(timeOut = 10000)
     public void TestWebAppAmong() {
-        TestModelGenerator moGen = new TestModelGenerator(100, 300);
-        Model model = moGen.generateModel();
+        ModelGenerator moGen = new ModelGenerator();
+        Model model = moGen.generateModel(100, 300);
 
 
         Set<Set<UUID>> nodeSets = new HashSet<Set<UUID>>();
@@ -54,6 +53,7 @@ public class PreservedEvaluation extends Datacenter {
         EvaluationTools.solve(cra, clone_model, ccons);
     }
 
+    @Test(timeOut = 10000)
     private Set<SatConstraint> preserveConstraints(Model model) {
         Set<SatConstraint> constraints = new HashSet<SatConstraint>();
 

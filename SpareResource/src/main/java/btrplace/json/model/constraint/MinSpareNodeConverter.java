@@ -1,7 +1,7 @@
 package btrplace.json.model.constraint;
 
+import btrplace.json.JSONConverter;
 import btrplace.json.JSONConverterException;
-import btrplace.json.JSONUtils;
 import btrplace.model.constraint.MinSpareNode;
 import net.minidev.json.JSONObject;
 
@@ -24,16 +24,16 @@ public class MinSpareNodeConverter extends SatConstraintConverter<MinSpareNode> 
     @Override
     public MinSpareNode fromJSON(JSONObject in) throws JSONConverterException {
         checkId(in);
-        return new MinSpareNode(JSONUtils.requiredUUIDs(in, "nodes"),
-                (int) JSONUtils.requiredLong(in, "amount"),
-                JSONUtils.requiredBoolean(in, "continuous"));
+        return new MinSpareNode(JSONConverter.requiredUUIDs(in, "nodes"),
+                (int) JSONConverter.requiredLong(in, "amount"),
+                JSONConverter.requiredBoolean(in, "continuous"));
     }
 
     @Override
     public JSONObject toJSON(MinSpareNode maxSN) throws JSONConverterException {
         JSONObject c = new JSONObject();
         c.put("id", getJSONId());
-        c.put("nodes", JSONUtils.toJSON(maxSN.getInvolvedNodes()));
+        c.put("nodes", JSONConverter.toJSON(maxSN.getInvolvedNodes()));
         c.put("amount", (long) maxSN.getAmount());
         c.put("continuous", maxSN.isContinuous());
         return c;

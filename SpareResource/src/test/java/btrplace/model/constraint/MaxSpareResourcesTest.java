@@ -126,7 +126,7 @@ public class MaxSpareResourcesTest implements PremadeElements {
 
     }
 
-    @Test
+    @Test(enabled = false)
     public void testMaxSpareResourcesContinuousSimple() throws SolverException {
 
         Mapping m = new MappingBuilder().on(n1, n2)

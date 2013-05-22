@@ -1,8 +1,6 @@
 package btrplace.evaluation;
 
 import btrplace.json.JSONConverterException;
-import btrplace.json.model.Instance;
-import btrplace.json.model.InstanceConverter;
 import btrplace.json.plan.ReconfigurationPlanConverter;
 import btrplace.model.Model;
 import btrplace.model.constraint.Offline;
@@ -24,7 +22,7 @@ import java.util.*;
  * Date: 5/7/13
  * Time: 2:36 PM
  */
-public class ShutdownEvaluation {
+public class HardwareFailures {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private static ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
     private Model model;
@@ -34,7 +32,7 @@ public class ShutdownEvaluation {
     private static FileWriter fw_dp;
     private static FileWriter fw_cp;
 
-    public ShutdownEvaluation(Model m, Set<SatConstraint> d, Set<SatConstraint> c) {
+    public HardwareFailures(Model m, Set<SatConstraint> d, Set<SatConstraint> c) {
         model = m;
         dis_cstr = d;
         cont_cstr = c;
@@ -51,10 +49,8 @@ public class ShutdownEvaluation {
 
     public void evaluate() {
         try {
-            log.info("Evaluate:");
             model = fixDiscreteModel();
             log.info("Successfully fix origin model");
-            log.info(model.toString());
             Model clone = model.clone();
 
             Random rand = new Random();
@@ -88,9 +84,6 @@ public class ShutdownEvaluation {
                         fw_dp.close();
 
                         cont_cstr.addAll(offs);
-                        Instance instance = new Instance(clone, new ArrayList<SatConstraint>(cont_cstr));
-                        InstanceConverter inconv = new InstanceConverter();
-                        inf.write(inconv.toJSON(instance).toJSONString());
                         inf.close();
 
                         ReconfigurationPlan cont_plan = cra.solve(clone, cont_cstr);

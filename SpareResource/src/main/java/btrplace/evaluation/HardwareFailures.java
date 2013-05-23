@@ -1,7 +1,9 @@
 package btrplace.evaluation;
 
 import btrplace.json.JSONConverterException;
+import btrplace.json.model.InstanceConverter;
 import btrplace.json.plan.ReconfigurationPlanConverter;
+import btrplace.model.Instance;
 import btrplace.model.Model;
 import btrplace.model.constraint.Offline;
 import btrplace.model.constraint.SatConstraint;
@@ -52,7 +54,10 @@ public class HardwareFailures {
             model = fixDiscreteModel();
             log.info("Successfully fix origin model");
             Model clone = model.clone();
-
+            Instance instance = new Instance(model, new ArrayList<SatConstraint>(dis_cstr));
+            InstanceConverter instanceConverter = new InstanceConverter();
+            inf.write(instanceConverter.toJSONString(instance));
+            inf.close();
             Random rand = new Random();
             int node_size = model.getMapping().getAllNodes().size();
             Set<Offline> offs = new HashSet<Offline>();
@@ -84,7 +89,7 @@ public class HardwareFailures {
                         fw_dp.close();
 
                         cont_cstr.addAll(offs);
-                        inf.close();
+
 
                         ReconfigurationPlan cont_plan = cra.solve(clone, cont_cstr);
                         fw_cp.write(rpc.toJSON(cont_plan).toJSONString());

@@ -1,16 +1,24 @@
 package btrplace.evaluation;
 
 import btrplace.json.JSONConverterException;
+import btrplace.json.model.InstanceConverter;
 import btrplace.json.model.ModelConverter;
+import btrplace.json.model.constraint.SatConstraintsConverter;
+import btrplace.json.plan.ReconfigurationPlanConverter;
 import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
+import btrplace.model.Instance;
 import btrplace.model.Model;
-import net.minidev.json.JSONObject;
-import net.minidev.json.parser.JSONParser;
-import net.minidev.json.parser.ParseException;
+import btrplace.model.constraint.SatConstraint;
+import btrplace.plan.ReconfigurationPlan;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * User: TU HUYNH DANG
@@ -21,11 +29,12 @@ class Solve {
 
     private boolean vflag = false;
     private boolean cont = false;
+    String instance_file = "";
+    String outputfile = "";
 
 
     public void readArguments(String args[]) {
-        String model_file = "";
-        String constraint_file = "";
+
         int i = 0, j;
         String arg;
         char flag;
@@ -40,23 +49,14 @@ class Solve {
             }
 
             // use this type of check for arguments that require arguments
-            /*else if (arg.equals("-m")) {
+            else if (arg.equals("-o")) {
                 if (i < args.length)
                     outputfile = args[i++];
                 else
                     System.err.println("-m requires a filename");
                 if (vflag)
-                    System.out.println("model file = " + outputfile);
+                    System.out.println("output file = " + outputfile);
             }
-
-            else if (arg.equals("-s")) {
-                if (i < args.length)
-                    outputfile = args[i++];
-                else
-                    System.err.println("-s requires a filename");
-                if (vflag)
-                    System.out.println("constraint file = " + outputfile);
-            }*/
 
             // use this type of check for a series of flag arguments
             else {
@@ -80,35 +80,88 @@ class Solve {
         }
 
         if (i == args.length) {
-            System.err.println("Usage: Solve [-verbose] [-cd] constraint_file model_file ");
+            System.err.println("Usage: Solve [-verbose] [-cd] constraint_file instance_file ");
         } else {
-            constraint_file = args[args.length - 2];
-            model_file = args[args.length - 1];
-            System.out.println(constraint_file);
-            System.out.println(model_file);
+            instance_file = args[args.length - 1];
+
+            if (outputfile == "") {
+            /*    File file = new File(instance_file);
+                String absolutePath = file.getAbsolutePath();
+                String filePath = absolutePath.
+                        substring(0,absolutePath.lastIndexOf(File.separator));
+                outputfile = filePath + File.separator + "plan.json";*/
+                outputfile = "plan.json";
+            }
+
         }
 
 
     }
 
-    public Model readModel(String model_file) {
+    public Model getModelFromFile(String file) {
         Model m = new DefaultModel(new DefaultMapping());
         try {
-            JSONParser parser = new JSONParser(1);
-            Object obj = parser.parse(new FileReader(model_file));
-            JSONObject jsonObject = (JSONObject) obj;
             ModelConverter modelConverter = new ModelConverter();
-            m = modelConverter.fromJSON(jsonObject);
+            m = modelConverter.fromJSON(new FileReader(file));
 
-        } catch (ParseException e) {
-            e.printStackTrace();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (JSONConverterException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return m;
     }
 
+    public Instance getInstance() {
+        Instance instance = new Instance(new DefaultModel(new DefaultMapping()), new ArrayList<SatConstraint>());
+        try {
+            InstanceConverter instanceConverter = new InstanceConverter();
+            instance = instanceConverter.fromJSONFile(instance_file);
+        } catch (FileNotFoundException e) {
+            System.out.println("File Not Found" + instance_file);
+        } catch (JSONConverterException e) {
+            System.out.println("JSON exception");
+        } catch (IOException e) {
+            System.out.println("I/O exception");
+        }
+        return instance;
+    }
 
+    public Model getModel() {
+        return getInstance().getModel();
+    }
+
+    public Set<SatConstraint> getConstraints() {
+        return new HashSet<SatConstraint>(getInstance().getConstraints());
+    }
+
+    public void recordPlan(ReconfigurationPlan plan) {
+        recordConstraints();
+        ReconfigurationPlanConverter rpc = new ReconfigurationPlanConverter();
+        try {
+            FileWriter fw = new FileWriter(outputfile);
+            fw.write(rpc.toJSONString(plan));
+            fw.close();
+        } catch (JSONConverterException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void recordConstraints() {
+        SatConstraintsConverter converter = new SatConstraintsConverter();
+
+        try {
+            FileWriter fw = new FileWriter("constraints.json");
+            fw.write(converter.constraintsToJSON(getConstraints()).toJSONString());
+            fw.close();
+        } catch (JSONConverterException e) {
+            System.out.println("JSON exception");
+        } catch (IOException e) {
+            System.out.println("I/O exception");
+        }
+    }
 }

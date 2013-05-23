@@ -3,15 +3,8 @@
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
     <id>dist</id>
     <formats>
-        <format>tar.gz</format>
+        <format>zip</format>
     </formats>
-    <dependencySets>
-        <dependencySet>
-            <includes/>
-            <outputDirectory>jar</outputDirectory>
-        </dependencySet>
-    </dependencySets>
-
     <files>
         <file>
             <source>src/main/resources/logback.xml</source>
@@ -22,12 +15,18 @@
     <fileSets>
         <fileSet>
             <fileMode>0755</fileMode>
-            <directory>src/main/bin</directory>
+            <directory>${project.basedir}/src/main/bin</directory>
             <outputDirectory>/</outputDirectory>
         </fileSet>
         <fileSet>
-            <directory>src/main/java</directory>
+            <directory>${project.basedir}/src/main/java</directory>
             <outputDirectory>/src</outputDirectory>
         </fileSet>
     </fileSets>
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>jar</outputDirectory>
+        </dependencySet>
+    </dependencySets>
+
 </assembly>

@@ -3,6 +3,7 @@ package btrplace.evaluation;
 import btrplace.model.Model;
 import btrplace.model.constraint.Preserve;
 import btrplace.model.constraint.SatConstraint;
+import btrplace.plan.DefaultReconfigurationPlan;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
@@ -34,7 +35,7 @@ public class IncreasingLoad {
     }
 
 
-    public void run() {
+    public ReconfigurationPlan run() {
         /*if (EvaluationTools.satisfy(model, cont_cstr)) {
             model = fixDiscreteModel();
         }*/
@@ -46,6 +47,14 @@ public class IncreasingLoad {
         ReconfigurationPlan planD = EvaluationTools.solve(cra, clone, EvaluationTools.toDiscrete(cont_cstr));
         String analyze = EvaluationTools.analyze(planD, planC);
         log.info(analyze);
+
+        if (planC != null)
+            return planC;
+        else if (planD != null)
+            return planD;
+        else
+            return new DefaultReconfigurationPlan(model);
+
     }
 
     /*private Model fixDiscreteModel() {

@@ -26,10 +26,11 @@ public class MinSpareResourcesConverterTest implements PremadeElements {
         MinSpareResources c = new MinSpareResources(s, "ucpu", 3);
         MinSpareResourcesConverter converter = new MinSpareResourcesConverter();
         try {
-            converter.toJSON(c, new File("mSR.json"));
-            MinSpareResources minSR = converter.fromJSON(new File("mSR.json"));
+            File file = new File("mSR.json");
+            converter.toJSON(c, file);
+            MinSpareResources minSR = converter.fromJSON(file);
             Assert.assertEquals(c, minSR);
-
+            file.delete();
         } catch (JSONConverterException e) {
             System.err.println(e.getMessage());
         } catch (IOException e) {

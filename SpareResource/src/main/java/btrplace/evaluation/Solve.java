@@ -16,10 +16,10 @@ import btrplace.plan.event.Action;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -27,12 +27,13 @@ import java.util.Set;
  * Date: 5/22/13
  * Time: 3:41 PM
  */
-class Solve {
+public class Solve {
 
     private boolean vflag = false;
     private boolean cont = false;
-    String instance_file = "";
+    String model_file = "";
     String outputfile = "";
+    String constraints = "";
 
 
     public void readArguments(String args[]) {
@@ -82,12 +83,13 @@ class Solve {
         }
 
         if (i == args.length) {
-            System.err.println("Usage: Solve [-verbose] [-cd] constraint_file instance_file ");
+            System.err.println("Usage: Solve [-verbose] [-o] plan_file constraints model");
         } else {
-            instance_file = args[args.length - 1];
+            model_file = args[args.length - 1];
+            constraints = args[args.length - 2];
 
             if (outputfile.equals("")) {
-            /*    File file = new File(instance_file);
+            /*    File file = new File(model_file);
                 String absolutePath = file.getAbsolutePath();
                 String filePath = absolutePath.
                         substring(0,absolutePath.lastIndexOf(File.separator));
@@ -101,18 +103,18 @@ class Solve {
     }
 
     public Model getModelFromFile(String file) {
+
+        ModelConverter modelConverter = new ModelConverter();
         Model m = new DefaultModel(new DefaultMapping());
         try {
-            ModelConverter modelConverter = new ModelConverter();
-            m = modelConverter.fromJSON(new FileReader(file));
-
-        } catch (FileNotFoundException e) {
-            System.out.println("File Not Found" + instance_file);
-        } catch (JSONConverterException e) {
-            System.out.println("JSON exception");
+            m = modelConverter.fromJSON(new File(file));
         } catch (IOException e) {
-            System.out.println("I/O exception");
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (JSONConverterException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
+
+
         return m;
     }
 
@@ -120,29 +122,41 @@ class Solve {
         Instance instance = new Instance(new DefaultModel(new DefaultMapping()), new ArrayList<SatConstraint>());
         try {
             InstanceConverter instanceConverter = new InstanceConverter();
-            instance = instanceConverter.fromJSON(new File(instance_file));
+            instance = instanceConverter.fromJSON(new File(model_file));
 
 
         } catch (FileNotFoundException e) {
-            System.out.println("File Not Found" + instance_file);
+            System.err.println(e.getMessage());
+            System.exit(-1);
         } catch (JSONConverterException e) {
-            System.out.println("JSON exception");
+            System.err.println(e.getMessage());
         } catch (IOException e) {
-            System.out.println("I/O exception");
+            System.err.println(e.getMessage());
         }
         return instance;
     }
 
     public Model getModel() {
-        return getInstance().getModel();
+        return getModelFromFile(model_file);
+//        return getInstance().getModel();
     }
 
     public Set<SatConstraint> getConstraints() {
-        return new HashSet<SatConstraint>(getInstance().getConstraints());
+        SatConstraintsConverter satConstraintsConverter = new SatConstraintsConverter();
+        Set<SatConstraint> ctrs = new HashSet<SatConstraint>();
+        try {
+            List<SatConstraint> satConstraint = satConstraintsConverter.listFromJSON(new File(constraints));
+            ctrs.addAll(satConstraint);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        } catch (JSONConverterException e) {
+            System.err.println(e.getMessage());
+        }
+        return ctrs;
+//        return new HashSet<SatConstraint>(getInstance().getConstraints());
     }
 
     public void recordPlan(ReconfigurationPlan plan) {
-        recordConstraints();
         ReconfigurationPlanConverter rpc = new ReconfigurationPlanConverter();
         ActionConverter co = new ActionConverter();
         try {
@@ -153,21 +167,22 @@ class Solve {
 
 
         } catch (JSONConverterException e) {
-            System.out.println("JSON exception");
+            System.err.println(e.getMessage());
         } catch (IOException e) {
-            System.out.println("I/O exception");
+            System.err.println(e.getMessage());
         }
     }
 
     public void recordConstraints() {
+
         SatConstraintsConverter converter = new SatConstraintsConverter();
         try {
             converter.toJSON(getConstraints(), new File("constraints.json"));
 
         } catch (JSONConverterException e) {
-            System.out.println("JSON exception");
+            System.err.println(e.getMessage());
         } catch (IOException e) {
-            System.out.println("I/O exception");
+            System.err.println(e.getMessage());
         }
     }
 }

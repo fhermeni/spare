@@ -27,10 +27,11 @@ public class MaxSpareResourcesConverterTest implements PremadeElements {
         MaxSpareResourcesConverter converter = new MaxSpareResourcesConverter();
 
         try {
-            converter.toJSON(c, new File("MSR.json"));
-            MaxSpareResources msr = converter.fromJSON(new File("MSR.json"));
+            File file = new File("MSR.json");
+            converter.toJSON(c, file);
+            MaxSpareResources msr = converter.fromJSON(file);
             Assert.assertEquals(c, msr);
-
+            file.delete();
         } catch (JSONConverterException e) {
             System.err.println(e.getMessage());
         } catch (IOException e) {

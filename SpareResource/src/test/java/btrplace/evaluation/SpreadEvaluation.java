@@ -1,5 +1,9 @@
 package btrplace.evaluation;
 
+import btrplace.json.JSONConverterException;
+import btrplace.json.model.ModelConverter;
+import btrplace.json.model.constraint.SatConstraintsConverter;
+import btrplace.json.plan.ReconfigurationPlanConverter;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
@@ -19,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -77,9 +83,22 @@ public class SpreadEvaluation implements PremadeElements {
         String analyze = EvaluationTools.analyze(planD, planC);
         System.out.println(analyze);
 
+        ReconfigurationPlanConverter planConverter = new ReconfigurationPlanConverter();
+        SatConstraintsConverter constraintsConverter = new SatConstraintsConverter();
+        try {
+            ModelConverter modelConverter = new ModelConverter();
+            modelConverter.toJSON(model, new File("SampleSpreadModel.json"));
+            planConverter.toJSON(planD, new File("planD.json"));
+            planConverter.toJSON(planC, new File("planC.json"));
+            constraintsConverter.toJSON(dList, new File("discrete.json"));
+            constraintsConverter.toJSON(cList, new File("continuous.json"));
+
+        } catch (JSONConverterException e) {
+            System.err.println(e.getMessage());
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
         Assert.assertEquals(model, clone);
-
-
     }
 
     @Test(timeOut = 10000)

@@ -28,10 +28,11 @@ public class MaxSpareNodeConverterTest implements PremadeElements {
 
         MaxSpareNodeConverter converter = new MaxSpareNodeConverter();
         try {
-            converter.toJSON(msn, new File("MaxSpareNode.json"));
-            MaxSpareNode msn_from_file = converter.fromJSON(new File("MaxSpareNode.json"));
+            File file = new File("MaxSpareNode.json");
+            converter.toJSON(msn, file);
+            MaxSpareNode msn_from_file = converter.fromJSON(file);
             Assert.assertEquals(msn, msn_from_file);
-
+            file.delete();
         } catch (JSONConverterException e) {
             System.err.println(e.getMessage());
         } catch (IOException e) {

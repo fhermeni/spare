@@ -18,7 +18,7 @@ import java.util.UUID;
  * Date: 5/24/13
  * Time: 9:22 AM
  */
-public class MaxOnlinesConverterTes implements PremadeElements {
+public class MaxOnlinesConverterTest implements PremadeElements {
 
     @Test
     public void main() {
@@ -27,11 +27,11 @@ public class MaxOnlinesConverterTes implements PremadeElements {
         MaxOnlines mo = new MaxOnlines(s, 2);
         MaxOnlinesConverter moc = new MaxOnlinesConverter();
         try {
-            moc.toJSON(mo, new File("maxOnlines.json"));
-            MaxOnlines new_max = moc.fromJSON(new File("maxOnlines.json"));
-
+            File file = new File("maxOnlines.json");
+            moc.toJSON(mo, file);
+            MaxOnlines new_max = moc.fromJSON(file);
             Assert.assertEquals(mo, new_max);
-
+            file.delete();
         } catch (JSONConverterException e) {
             System.err.println(e.getMessage());
         } catch (IOException e) {

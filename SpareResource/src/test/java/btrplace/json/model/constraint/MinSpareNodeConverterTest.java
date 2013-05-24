@@ -27,10 +27,11 @@ public class MinSpareNodeConverterTest implements PremadeElements {
 
         MinSpareNodeConverter converter = new MinSpareNodeConverter();
         try {
-            converter.toJSON(msn, new File("MinSpareNode.json"));
-            MinSpareNode minSpareNode = converter.fromJSON(new File("MinSpareNode.json"));
+            File file = new File("MinSpareNode.json");
+            converter.toJSON(msn, file);
+            MinSpareNode minSpareNode = converter.fromJSON(file);
             Assert.assertEquals(msn, minSpareNode);
-
+            file.delete();
         } catch (JSONConverterException e) {
             System.err.println(e.getMessage());
         } catch (IOException e) {

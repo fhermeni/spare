@@ -10,11 +10,9 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Created with IntelliJ IDEA.
  * User: TU HUYNH DANG
  * Date: 5/2/13
  * Time: 9:16 AM
- * To change this template use File | Settings | File Templates.
  */
 public class TraceReader {
 

@@ -17,7 +17,7 @@ import java.util.Set;
  * Date: 5/23/13
  * Time: 12:38 PM
  */
-public class PlanCheck {
+public class PlanChecker {
 
     public static void main(String[] args) {
 
@@ -27,9 +27,16 @@ public class PlanCheck {
             ReconfigurationPlan plan = planConverter.fromJSON(new File(args[0]));
             List<SatConstraint> satConstraint = satConstraintsConverter.listFromJSON(new File(args[1]));
 
-            if (check(plan, new HashSet<SatConstraint>(satConstraint))) {
-                System.out.println("The plan satisfies all the constraints");
+            SatConstraint disatisfied = check(plan, new HashSet<SatConstraint>(satConstraint));
+            if (disatisfied == null) {
+                System.out.println(String.format("The plan:\n%s\n satisfies all the constraints:", plan));
+                for (SatConstraint s : satConstraint) {
+                    System.out.println(s);
+                }
+            } else {
+                System.out.println(String.format("The plan:\n%s\nNOT satisfy the constraint:\n%s", plan, disatisfied));
             }
+
 
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -39,20 +46,20 @@ public class PlanCheck {
     }
 
 
-    static public boolean check(ReconfigurationPlan plan, Set<SatConstraint> co) {
+    static public SatConstraint check(ReconfigurationPlan plan, Set<SatConstraint> co) {
         for (SatConstraint c : co) {
             if (c.isContinuous()) {
                 if (!c.isSatisfied(plan)) {
                     System.out.println("Doesn't satisfy " + c);
-                    return false;
+                    return c;
                 }
             } else {
                 if (!c.isSatisfied(plan.getResult())) {
                     System.out.println("Doesn't satisfy " + c);
-                    return false;
+                    return c;
                 }
             }
         }
-        return true;
+        return null;
     }
 }

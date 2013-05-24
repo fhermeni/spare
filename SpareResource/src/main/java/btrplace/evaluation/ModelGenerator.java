@@ -1,11 +1,15 @@
 package btrplace.evaluation;
 
+import btrplace.json.JSONConverterException;
+import btrplace.json.model.ModelConverter;
 import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
 import btrplace.model.view.ShareableResource;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -132,5 +136,18 @@ public class ModelGenerator {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("%s\n%s\n%s\n", mapping.toString(), cpus.toString(), mems.toString()));
         return sb.toString();
+    }
+
+    public static void main(String[] args) {
+        ModelGenerator mg = new ModelGenerator();
+        Model model1 = mg.generateModel(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+        ModelConverter converter = new ModelConverter();
+        try {
+            converter.toJSON(model1, new File(String.format("%sNode%sVM.json", args[0], args[1])));
+        } catch (JSONConverterException e) {
+            System.err.println(e.getMessage());
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
     }
 }

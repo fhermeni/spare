@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -29,7 +30,9 @@ public class QuarantineEvaluation {
         Model model = gen.generateModel(20, 30);
 
         Quarantine constraint = new Quarantine(gen.getRandomNodes(2));
-        Instance instance = new Instance(model, new ArrayList<SatConstraint>(Collections.singleton(constraint)));
+        Quarantine constraint2 = new Quarantine(gen.getRandomNodes(2));
+
+        Instance instance = new Instance(model, new ArrayList<SatConstraint>(Arrays.asList(constraint, constraint2)));
         InstanceConverter converter = new InstanceConverter();
         FileWriter fw = new FileWriter("QuarantineInstance.json");
         fw.write(converter.toJSONString(instance));

@@ -96,7 +96,7 @@ public class EvaluationTools {
             result = plan.getResult();
 
         } catch (SolverException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            System.err.println(e.getMessage());   //To change body of catch statement use File | Settings | File Templates.
         }
         return result;
     }

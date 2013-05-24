@@ -1,6 +1,6 @@
 package btrplace.json.model.constraint;
 
-import btrplace.json.JSONConverter;
+import btrplace.json.AbstractJSONObjectConverter;
 import btrplace.json.JSONConverterException;
 import btrplace.model.constraint.MaxOnlines;
 import net.minidev.json.JSONObject;
@@ -24,16 +24,16 @@ public class MaxOnlinesConverter extends SatConstraintConverter<MaxOnlines> {
     @Override
     public MaxOnlines fromJSON(JSONObject in) throws JSONConverterException {
         checkId(in);
-        return new MaxOnlines(JSONConverter.requiredUUIDs(in, "nodes"),
-                (int) JSONConverter.requiredLong(in, "amount"),
-                JSONConverter.requiredBoolean(in, "continuous"));
+        return new MaxOnlines(AbstractJSONObjectConverter.requiredUUIDs(in, "nodes"),
+                (int) AbstractJSONObjectConverter.requiredLong(in, "amount"),
+                AbstractJSONObjectConverter.requiredBoolean(in, "continuous"));
     }
 
     @Override
     public JSONObject toJSON(MaxOnlines maxOnlines) throws JSONConverterException {
         JSONObject c = new JSONObject();
         c.put("id", getJSONId());
-        c.put("nodes", JSONConverter.toJSON(maxOnlines.getInvolvedNodes()));
+        c.put("nodes", AbstractJSONObjectConverter.uuidsToJSON(maxOnlines.getInvolvedNodes()));
         c.put("amount", (long) maxOnlines.getAmount());
         c.put("continuous", maxOnlines.isContinuous());
         return c;

@@ -83,7 +83,7 @@ public class MinSpareNode extends SatConstraint {
             return false;
         }
 
-        MinSpareResources that = (MinSpareResources) o;
+        MinSpareNode that = (MinSpareNode) o;
 
         return qty == that.getAmount() && getInvolvedNodes().equals(that.getInvolvedNodes())
                 && this.isContinuous() == that.isContinuous();

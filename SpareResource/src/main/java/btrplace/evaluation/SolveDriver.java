@@ -23,6 +23,7 @@ public class SolveDriver {
 
         IncreasingLoad incLoad = new IncreasingLoad(model, constraints);
         ReconfigurationPlan plan = incLoad.run();
+        System.out.println(plan);
         s.recordPlan(plan);
     }
 }

@@ -1,6 +1,6 @@
 package btrplace.json.model.constraint;
 
-import btrplace.json.JSONConverter;
+import btrplace.json.AbstractJSONObjectConverter;
 import btrplace.json.JSONConverterException;
 import btrplace.model.constraint.MaxSpareResources;
 import net.minidev.json.JSONObject;
@@ -24,17 +24,17 @@ public class MaxSpareResourcesConverter extends SatConstraintConverter<MaxSpareR
     @Override
     public MaxSpareResources fromJSON(JSONObject in) throws JSONConverterException {
         checkId(in);
-        return new MaxSpareResources(JSONConverter.requiredUUIDs(in, "nodes"),
-                JSONConverter.requiredString(in, "rcId"),
-                (int) JSONConverter.requiredLong(in, "amount"),
-                JSONConverter.requiredBoolean(in, "continuous"));
+        return new MaxSpareResources(AbstractJSONObjectConverter.requiredUUIDs(in, "nodes"),
+                AbstractJSONObjectConverter.requiredString(in, "rcId"),
+                (int) AbstractJSONObjectConverter.requiredLong(in, "amount"),
+                AbstractJSONObjectConverter.requiredBoolean(in, "continuous"));
     }
 
     @Override
     public JSONObject toJSON(MaxSpareResources maxSN) throws JSONConverterException {
         JSONObject c = new JSONObject();
         c.put("id", getJSONId());
-        c.put("nodes", JSONConverter.toJSON(maxSN.getInvolvedNodes()));
+        c.put("nodes", AbstractJSONObjectConverter.uuidsToJSON(maxSN.getInvolvedNodes()));
         c.put("rcId", maxSN.getResource());
         c.put("amount", (long) maxSN.getAmount());
         c.put("continuous", maxSN.isContinuous());

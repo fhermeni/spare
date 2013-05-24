@@ -4,6 +4,7 @@ import btrplace.json.JSONConverterException;
 import btrplace.json.model.InstanceConverter;
 import btrplace.json.model.ModelConverter;
 import btrplace.json.model.constraint.SatConstraintsConverter;
+import btrplace.json.plan.ActionConverter;
 import btrplace.json.plan.ReconfigurationPlanConverter;
 import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
@@ -11,10 +12,11 @@ import btrplace.model.Instance;
 import btrplace.model.Model;
 import btrplace.model.constraint.SatConstraint;
 import btrplace.plan.ReconfigurationPlan;
+import btrplace.plan.event.Action;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -84,7 +86,7 @@ class Solve {
         } else {
             instance_file = args[args.length - 1];
 
-            if (outputfile == "") {
+            if (outputfile.equals("")) {
             /*    File file = new File(instance_file);
                 String absolutePath = file.getAbsolutePath();
                 String filePath = absolutePath.
@@ -105,11 +107,11 @@ class Solve {
             m = modelConverter.fromJSON(new FileReader(file));
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("File Not Found" + instance_file);
         } catch (JSONConverterException e) {
-            e.printStackTrace();
+            System.out.println("JSON exception");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("I/O exception");
         }
         return m;
     }
@@ -118,7 +120,9 @@ class Solve {
         Instance instance = new Instance(new DefaultModel(new DefaultMapping()), new ArrayList<SatConstraint>());
         try {
             InstanceConverter instanceConverter = new InstanceConverter();
-            instance = instanceConverter.fromJSONFile(instance_file);
+            instance = instanceConverter.fromJSON(new File(instance_file));
+
+
         } catch (FileNotFoundException e) {
             System.out.println("File Not Found" + instance_file);
         } catch (JSONConverterException e) {
@@ -140,24 +144,26 @@ class Solve {
     public void recordPlan(ReconfigurationPlan plan) {
         recordConstraints();
         ReconfigurationPlanConverter rpc = new ReconfigurationPlanConverter();
+        ActionConverter co = new ActionConverter();
         try {
-            FileWriter fw = new FileWriter(outputfile);
-            fw.write(rpc.toJSONString(plan));
-            fw.close();
+            for (Action action : plan) {
+                System.out.println(co.toJSONString(action));
+            }
+            rpc.toJSON(plan, new File(outputfile));
+
+
         } catch (JSONConverterException e) {
-            e.printStackTrace();
+            System.out.println("JSON exception");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("I/O exception");
         }
     }
 
     public void recordConstraints() {
         SatConstraintsConverter converter = new SatConstraintsConverter();
-
         try {
-            FileWriter fw = new FileWriter("constraints.json");
-            fw.write(converter.constraintsToJSON(getConstraints()).toJSONString());
-            fw.close();
+            converter.toJSON(getConstraints(), new File("constraints.json"));
+
         } catch (JSONConverterException e) {
             System.out.println("JSON exception");
         } catch (IOException e) {

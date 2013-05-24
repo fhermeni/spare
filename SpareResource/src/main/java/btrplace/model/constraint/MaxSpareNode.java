@@ -82,7 +82,7 @@ public class MaxSpareNode extends SatConstraint {
             return false;
         }
 
-        MinSpareResources that = (MinSpareResources) o;
+        MaxSpareNode that = (MaxSpareNode) o;
 
         return qty == that.getAmount() && getInvolvedNodes().equals(that.getInvolvedNodes())
                 && this.isContinuous() == that.isContinuous();

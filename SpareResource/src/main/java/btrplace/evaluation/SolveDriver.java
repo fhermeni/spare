@@ -18,7 +18,8 @@ public class SolveDriver {
         s.readArguments(args);
         Model model = s.getModel();
         Set<SatConstraint> constraints = s.getConstraints();
-        IncreasingLoad incLoad = new IncreasingLoad(model, constraints);
+        Model fixed_model = EvaluationTools.prepareModel(model, constraints);
+        IncreasingLoad incLoad = new IncreasingLoad(fixed_model, constraints);
         ReconfigurationPlan plan = incLoad.run();
         System.out.println(plan);
         s.recordPlan(plan);

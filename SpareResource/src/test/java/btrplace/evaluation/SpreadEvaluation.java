@@ -118,8 +118,6 @@ public class SpreadEvaluation implements PremadeElements {
         ctrsC.add(new Spread(tomcat));
         ctrsC.add(new Spread(mysql));
         log.info(ctrs.toString());
-        HardwareFailures ev = new HardwareFailures(m, ctrs, ctrsC);
-        ev.evaluate();
     }
 
     @Test(timeOut = 10000)
@@ -144,5 +142,57 @@ public class SpreadEvaluation implements PremadeElements {
             log.error(e.toString());
 
         }
+    }
+
+    @Test
+    public void newTestHF() {
+        ModelGenerator tm = new ModelGenerator();
+        Model model = tm.generateModel(10, 25);
+        Spread spread = new Spread(tm.getRandomVMs(5), false);
+        Set<SatConstraint> constraints = new HashSet<SatConstraint>();
+        constraints.add(spread);
+
+        Model readyModel = EvaluationTools.prepareModel(model, constraints);
+        HardwareFailures ic = new HardwareFailures(readyModel, constraints);
+        ReconfigurationPlan plan = ic.run();
+        spread.setContinuous(true);
+
+        if (plan != null) {
+            if (PlanChecker.check(plan, constraints) == null) {
+                log.info("Discrete plan satisfies continuous restriction");
+            }
+        } else {
+            log.info("No plan");
+        }
+    }
+
+    @Test
+    public void newTestIL() {
+        ModelGenerator tm = new ModelGenerator();
+        Model model = tm.generateModel(10, 25);
+        Spread spread = new Spread(tm.getRandomVMs(8), false);
+        Spread spread2 = new Spread(tm.getRandomVMs(6), false);
+        Set<SatConstraint> constraints = new HashSet<SatConstraint>();
+        constraints.add(spread);
+        constraints.add(spread2);
+
+        Model readyModel = EvaluationTools.prepareModel(model, constraints);
+        IncreasingLoad ic = new IncreasingLoad(readyModel, constraints);
+        ReconfigurationPlan plan = ic.run();
+        spread.setContinuous(true);
+        spread2.setContinuous(true);
+
+        if (PlanChecker.check(plan, constraints) != null) {
+            log.info("Discrete plan does NOT satisfy continuous restriction");
+            ic = new IncreasingLoad(readyModel, constraints);
+            ReconfigurationPlan contPlan = ic.run();
+            if (PlanChecker.check(contPlan, constraints) == null) {
+                log.info("Continuous plan satisfy continuous restriction");
+                log.info(EvaluationTools.analyze(plan, contPlan));
+            }
+
+        }
+
+
     }
 }

@@ -61,8 +61,6 @@ public class SplitAmongEvaluation {
 //        ctrsC.add(new Spread(tomcat, false));
         ctrsC.add(new SplitAmong(vm_set, node_set, true));
 
-        HardwareFailures ev = new HardwareFailures(m, ctrs, ctrsC);
-        ev.evaluate();
     }
 
     @Test(timeOut = 10000)
@@ -100,8 +98,6 @@ public class SplitAmongEvaluation {
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
         Assert.assertTrue(saC.isSatisfied(result));
-        HardwareFailures hardwareFailures = new HardwareFailures(result, dis_cstrs, cont_cstrs);
-        hardwareFailures.evaluate();
     }
 
     @Test(timeOut = 10000)
@@ -137,8 +133,6 @@ public class SplitAmongEvaluation {
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
         Assert.assertTrue(saC.isSatisfied(result));
-        HardwareFailures hardwareFailures = new HardwareFailures(result, dis_cstrs, cont_cstrs);
-        hardwareFailures.evaluate();
     }
 
     @Test(timeOut = 10000)
@@ -173,8 +167,6 @@ public class SplitAmongEvaluation {
         Model result = plan.getResult();
         Assert.assertNotEquals(result, model);
         Assert.assertTrue(saC.isSatisfied(result));
-        HardwareFailures hardwareFailures = new HardwareFailures(result, dis_cstrs, cont_cstrs);
-        hardwareFailures.evaluate();
     }
 
     @Test(timeOut = 10000)

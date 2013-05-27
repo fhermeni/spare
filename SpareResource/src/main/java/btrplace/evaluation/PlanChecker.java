@@ -21,20 +21,70 @@ public class PlanChecker {
 
     public static void main(String[] args) {
 
+        boolean vflag = false;
+        boolean cont = false;
+        String plan_file = "";
+        String constraints = "";
+
+        int i = 0, j;
+        String arg;
+        char flag;
+
+        while (i < args.length && args[i].startsWith("-")) {
+            arg = args[i++];
+
+            // use this type of check for "wordy" arguments
+            if (arg.equals("-verbose") || arg.equals("-v")) {
+                System.out.println("verbose mode on");
+                vflag = true;
+            }
+
+            // use this type of check for a series of flag arguments
+            else {
+                for (j = 1; j < arg.length(); j++) {
+                    flag = arg.charAt(j);
+                    switch (flag) {
+                        case 'd':
+                            cont = false;
+                            if (vflag) System.out.println("Continuous:" + cont);
+                            break;
+                        case 'c':
+                            cont = true;
+                            if (vflag) System.out.println("Continuous:" + cont);
+                            break;
+                        default:
+                            System.err.println("Solve: illegal option " + flag);
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (i == args.length) {
+            System.err.println("Usage: Solve [-cd] constraints plan");
+        } else {
+            plan_file = args[args.length - 1];
+            constraints = args[args.length - 2];
+        }
+
+
         ReconfigurationPlanConverter planConverter = new ReconfigurationPlanConverter();
         SatConstraintsConverter satConstraintsConverter = new SatConstraintsConverter();
         try {
-            ReconfigurationPlan plan = planConverter.fromJSON(new File(args[0]));
-            List<SatConstraint> satConstraint = satConstraintsConverter.listFromJSON(new File(args[1]));
-
-            SatConstraint disatisfied = check(plan, new HashSet<SatConstraint>(satConstraint));
-            if (disatisfied == null) {
+            ReconfigurationPlan plan = planConverter.fromJSON(new File(plan_file));
+            List<SatConstraint> satConstraint = satConstraintsConverter.listFromJSON(new File(constraints));
+            Set<SatConstraint> dConstr = new HashSet<SatConstraint>(satConstraint);
+            if (!cont) {
+                dConstr = EvaluationTools.toDiscrete(new HashSet<SatConstraint>(satConstraint));
+            }
+            SatConstraint disSatisfied = check(plan, dConstr);
+            if (disSatisfied == null) {
                 System.out.println(String.format("The plan:\n%s\n satisfies all the constraints:", plan));
                 for (SatConstraint s : satConstraint) {
                     System.out.println(s);
                 }
             } else {
-                System.out.println(String.format("The plan:\n%s\nNOT satisfy the constraint:\n%s", plan, disatisfied));
+                System.out.println(String.format("The plan:\n%s\nNOT satisfy the constraint:\n%s", plan, disSatisfied));
             }
 
 
@@ -47,6 +97,11 @@ public class PlanChecker {
 
 
     static public SatConstraint check(ReconfigurationPlan plan, Set<SatConstraint> co) {
+        if (plan == null) {
+            System.err.println("No plan");
+            System.exit(-1);
+        }
+
         for (SatConstraint c : co) {
             if (c.isContinuous()) {
                 if (!c.isSatisfied(plan)) {

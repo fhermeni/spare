@@ -24,12 +24,12 @@ public class ModelGenerator {
     private static int NUMBER_OF_NODE;
     private static int NUMBER_OF_VM;
 
-    public static UUID[] nodes = new UUID[NUMBER_OF_NODE];
-    public static UUID[] vms = new UUID[NUMBER_OF_VM];
-    public static Model model;
-    public static Mapping mapping;
-    public static ShareableResource cpus;
-    public static ShareableResource mems;
+    public UUID[] nodes = new UUID[NUMBER_OF_NODE];
+    public UUID[] vms = new UUID[NUMBER_OF_VM];
+    public Model model;
+    public Mapping mapping;
+    public ShareableResource cpus;
+    public ShareableResource mems;
     private Random rand = new Random(System.nanoTime() % 100000);
 
     public ModelGenerator() {
@@ -143,7 +143,7 @@ public class ModelGenerator {
         Model model1 = mg.generateModel(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
         ModelConverter converter = new ModelConverter();
         try {
-            converter.toJSON(model1, new File(String.format("%sNode%sVM.json", args[0], args[1])));
+            converter.toJSON(model1, new File(String.format("%sNode%sVM", args[0], args[1])));
         } catch (JSONConverterException e) {
             System.err.println(e.getMessage());
         } catch (IOException e) {

@@ -1,7 +1,7 @@
 <configuration>
     <appender name="fileAppender" class="ch.qos.logback.core.FileAppender">
         <file>testOutput.log</file>
-        <append>true</append>
+        <append>false</append>
         <encoder>
             <pattern>%msg%n</pattern>
         </encoder>
@@ -16,7 +16,7 @@
     </appender>
 
     <root level="INFO">
-        <!--<appender-ref ref="fileAppender"/>-->
-        <apprender>"STDOUT"</apprender>
+        <appender-ref ref="fileAppender"/>
+        <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

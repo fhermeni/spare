@@ -83,7 +83,7 @@ public class Solve {
         }
 
         if (i == args.length) {
-            System.err.println("Usage: Solve [-verbose] [-o] plan_file constraints model");
+            System.err.println("Usage: Solve [-verbose] [-o plan_file] constraints model");
         } else {
             model_file = args[args.length - 1];
             constraints = args[args.length - 2];

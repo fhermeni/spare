@@ -1,5 +1,6 @@
 package btrplace.evaluation;
 
+import btrplace.demo.PlanChecker;
 import btrplace.json.JSONConverterException;
 import btrplace.json.model.ModelConverter;
 import btrplace.json.model.constraint.SatConstraintsConverter;
@@ -153,16 +154,19 @@ public class SpreadEvaluation implements PremadeElements {
         constraints.add(spread);
 
         Model readyModel = EvaluationTools.prepareModel(model, constraints);
-        HardwareFailures ic = new HardwareFailures(readyModel, constraints);
-        ReconfigurationPlan plan = ic.run();
+        HardwareFailures failures = new HardwareFailures(readyModel, constraints);
+        ReconfigurationPlan plan = failures.run();
         spread.setContinuous(true);
 
-        if (plan != null) {
-            if (PlanChecker.check(plan, constraints) == null) {
-                log.info("Discrete plan satisfies continuous restriction");
+        if (PlanChecker.check(plan, constraints) != null) {
+            log.info("Discrete plan does NOT satisfy continuous restriction");
+            failures = new HardwareFailures(readyModel, constraints);
+            ReconfigurationPlan contPlan = failures.run();
+            if (PlanChecker.check(contPlan, constraints) == null) {
+                log.info("Continuous plan satisfy continuous restriction");
+                log.info(EvaluationTools.analyze(plan, contPlan));
             }
-        } else {
-            log.info("No plan");
+
         }
     }
 

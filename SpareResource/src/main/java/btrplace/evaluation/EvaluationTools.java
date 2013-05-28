@@ -72,11 +72,11 @@ public class EvaluationTools {
             ReconfigurationPlan p = cra.solve(model, constraints);
             if (p != null) {
                 log.info(cra.getSolvingStatistics().toString());
-                log.info(p.toString());
                 return p;
             }
         } catch (SolverException e) {
             System.err.println("--- Solving using repair : " + cra.doRepair() + "; Error: " + e.getMessage());
+            System.exit(-1);
         }
         return null;
     }

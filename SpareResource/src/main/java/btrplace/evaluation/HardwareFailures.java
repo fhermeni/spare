@@ -17,7 +17,7 @@ import java.util.UUID;
  * Date: 5/7/13
  * Time: 2:36 PM
  */
-public class HardwareFailures {
+class HardwareFailures {
 
     private ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
     private Model model;

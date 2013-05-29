@@ -115,6 +115,25 @@ public class ModelGenerator {
         return vm_set;
     }
 
+    public Set<UUID> getSpreadVMs(int size) {
+        Set<UUID> vmSet = new HashSet<UUID>();
+        Set<UUID> hostSet = new HashSet<UUID>();
+        UUID vm;
+        UUID vmLocation;
+        for (int i = 0; i < size; i++) {
+            int randomId;
+            do {
+                randomId = rand.nextInt(vms.length);
+                vm = vms[randomId];
+                vmLocation = mapping.getVMLocation(vm);
+            }
+            while (hostSet.contains(vmLocation));
+            hostSet.add(vmLocation);
+            vmSet.add(vm);
+        }
+        return vmSet;
+    }
+
     public Set<UUID> getRandomNodes(int size) {
 
         Set<UUID> node_set = new HashSet<UUID>();
@@ -129,6 +148,20 @@ public class ModelGenerator {
             node_set.add(nodes[randomId]);
         }
         return node_set;
+    }
+
+    public Set<Set<UUID>> getDistinctSet(int Number_of_Set) {
+        Set<Set<UUID>> collection = new HashSet<Set<UUID>>();
+        int j = 0;
+        for (int i = 0; i < Number_of_Set; i++) {
+            Set<UUID> tmpSet = new HashSet<UUID>();
+            int size = NUMBER_OF_NODE / Number_of_Set;
+            for (int k = 0; k < size; k++) {
+                tmpSet.add(nodes[j++]);
+            }
+            collection.add(tmpSet);
+        }
+        return collection;
     }
 
     @Override

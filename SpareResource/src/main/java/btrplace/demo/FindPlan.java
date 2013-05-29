@@ -30,7 +30,6 @@ import java.util.Set;
  */
 public class FindPlan {
 
-    private static boolean vflag = false;
     private static boolean cont = false;
     private static String model_file = "";
     private static String output_file = "";
@@ -109,6 +108,7 @@ public class FindPlan {
         Options options = new Options();
         options.addOption("c", false, "For continuous restriction");
         options.addOption("d", false, "For discrete restriction");
+        options.addOption("h", false, "For Help");
         options.addOption("m", true, "Model file");
         options.addOption("o", true, "Plan output file");
 
@@ -135,9 +135,12 @@ public class FindPlan {
                 output_file = "plan.json";
             }
 
-            for (String s : line.getArgs()) {
-                constraints = s;
-                break;
+            constraints = line.getArgs()[0];
+
+
+            if (line.hasOption("h")) {
+                HelpFormatter formatter = new HelpFormatter();
+                formatter.printHelp("generator", options, true);
             }
 
         } catch (ParseException e) {
@@ -152,6 +155,7 @@ public class FindPlan {
         Model model = getModel();
         Set<SatConstraint> constraints = getConstraints();
         Model fixed_model = EvaluationTools.prepareModel(model, constraints);
+        if (cont) for (SatConstraint c : constraints) c.setContinuous(true);
         IncreasingLoad incLoad = new IncreasingLoad(fixed_model, constraints);
         ReconfigurationPlan plan = incLoad.run();
         if (plan == null) {

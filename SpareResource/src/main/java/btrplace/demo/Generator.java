@@ -24,6 +24,8 @@ public class Generator {
     private static String constraint_name;
     private static int nNode;
     private static int nVM;
+    private static int vmsSize;
+    private static int nodeSize;
 
     private enum Constraint {
         among, ban, CReC, CVmC, fence, gather, killed, lonely, offline, online, overbook, preserve, quarantine,
@@ -41,6 +43,8 @@ public class Generator {
         options.addOption("n", true, "Number of nodes");
         options.addOption("m", true, "Number of VMs");
         options.addOption("t", true, "Constraint Name");
+        options.addOption("s", true, "Size of the VM set");
+        options.addOption("z", true, "Size of the Node set");
         CommandLineParser parser = new BasicParser();
 
         try {
@@ -56,6 +60,14 @@ public class Generator {
 
             if (line.hasOption("m")) {
                 nVM = Integer.parseInt(line.getOptionValue("m"));
+            }
+
+            if (line.hasOption("s")) {
+                vmsSize = Integer.parseInt(line.getOptionValue("s"));
+            }
+
+            if (line.hasOption("z")) {
+                nodeSize = Integer.parseInt(line.getOptionValue("z"));
             }
 
             if (line.hasOption("t")) {
@@ -75,32 +87,32 @@ public class Generator {
         Model model = gen.generateModel(nNode, nVM);
         switch (name) {
             case among:
-                Among among = new Among(gen.getRandomVMs(nNode / 3), gen.getDistinctSet(4), continuous);
+                Among among = new Among(gen.getRandomVMs(vmsSize), gen.getDistinctSet(nodeSize), continuous);
                 constraintSet.add(among);
                 break;
 
             case spread:
-                Spread spread = new Spread(gen.getSpreadVMs(nNode - 3), continuous);
+                Spread spread = new Spread(gen.getSpreadVMs(vmsSize), continuous);
                 constraintSet.add(spread);
                 break;
 
             case ban:
-                Ban ban = new Ban(gen.getRandomVMs(4), gen.getRandomNodes(nNode / 2));
+                Ban ban = new Ban(gen.getRandomVMs(vmsSize), gen.getRandomNodes(nodeSize));
                 constraintSet.add(ban);
                 break;
 
             case fence:
-                Fence fence = new Fence(gen.getRandomVMs(4), gen.getRandomNodes(nNode / 2));
+                Fence fence = new Fence(gen.getRandomVMs(vmsSize), gen.getRandomNodes(nodeSize));
                 constraintSet.add(fence);
                 break;
 
             case lonely:
-                Lonely lonely = new Lonely(gen.getRandomVMs(4), continuous);
+                Lonely lonely = new Lonely(gen.getRandomVMs(vmsSize), continuous);
                 constraintSet.add(lonely);
                 break;
 
             case quarantine:
-                Quarantine quarantine = new Quarantine(gen.getRandomNodes(4));
+                Quarantine quarantine = new Quarantine(gen.getRandomNodes(vmsSize));
                 constraintSet.add(quarantine);
                 break;
         }

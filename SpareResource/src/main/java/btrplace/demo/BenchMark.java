@@ -1,24 +1,23 @@
 package btrplace.demo;
 
+import btrplace.evaluation.CpuPeak;
 import btrplace.evaluation.EvaluationTools;
+import btrplace.evaluation.HardwareFailures;
 import btrplace.evaluation.IncreasingLoad;
 import btrplace.json.JSONConverterException;
-import btrplace.json.model.InstanceConverter;
 import btrplace.json.model.ModelConverter;
 import btrplace.json.model.constraint.SatConstraintsConverter;
 import btrplace.json.plan.ReconfigurationPlanConverter;
 import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
-import btrplace.model.Instance;
 import btrplace.model.Model;
 import btrplace.model.constraint.SatConstraint;
+import btrplace.plan.DefaultReconfigurationPlan;
 import btrplace.plan.ReconfigurationPlan;
 import org.apache.commons.cli.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,33 +27,19 @@ import java.util.Set;
  * Date: 5/22/13
  * Time: 3:41 PM
  */
-public class FindPlan {
+public class BenchMark {
 
     private static boolean cont = false;
     private static String model_file = "";
     private static String output_file = "";
-    private static String constraints = "";
+    private static String event = "";
+    private static Set<String> constraints;
+    private static int iPercent = 0;
 
-
-    public Instance getInstance() {
-        Instance instance = new Instance(new DefaultModel(new DefaultMapping()), new ArrayList<SatConstraint>());
-        try {
-            InstanceConverter instanceConverter = new InstanceConverter();
-            instance = instanceConverter.fromJSON(new File(model_file));
-
-
-        } catch (FileNotFoundException e) {
-            System.err.println(e.getMessage());
-            System.exit(-1);
-        } catch (JSONConverterException e) {
-            System.err.println(e.getMessage());
-            System.exit(-1);
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-            System.exit(-1);
-        }
-        return instance;
+    private enum EventType {
+        load, failure, peak
     }
+
 
     public static Model getModel() {
         ModelConverter modelConverter = new ModelConverter();
@@ -75,8 +60,11 @@ public class FindPlan {
         SatConstraintsConverter satConstraintsConverter = new SatConstraintsConverter();
         Set<SatConstraint> ctrs = new HashSet<SatConstraint>();
         try {
-            List<SatConstraint> satConstraint = satConstraintsConverter.listFromJSON(new File(constraints));
-            ctrs.addAll(satConstraint);
+            for (String s : constraints) {
+                List<SatConstraint> satConstraint = satConstraintsConverter.listFromJSON(new File(s));
+                ctrs.addAll(satConstraint);
+            }
+
         } catch (IOException e) {
             System.err.println(e.getMessage());
             System.exit(-1);
@@ -111,6 +99,8 @@ public class FindPlan {
         options.addOption("h", false, "For Help");
         options.addOption("m", true, "Model file");
         options.addOption("o", true, "Plan output file");
+        options.addOption("e", true, "Event type: [load, failure, peak]");
+        options.addOption("i", true, "Percent of load increase");
 
         CommandLineParser parser = new BasicParser();
 
@@ -121,21 +111,28 @@ public class FindPlan {
                 cont = true;
             }
 
-            if (line.hasOption("d")) {
-                cont = false;
+            if (line.hasOption("o")) {
+                output_file = line.getOptionValue("o");
+            } else {
+                output_file = (cont) ? "cplan.json" : "dplan.json";
             }
 
             if (line.hasOption("m")) {
                 model_file = line.getOptionValue("m");
             }
 
-            if (line.hasOption("o")) {
-                output_file = line.getOptionValue("o");
-            } else {
-                output_file = "plan.json";
+            if (line.hasOption("e")) {
+                event = line.getOptionValue("e");
             }
 
-            constraints = line.getArgs()[0];
+            if (line.hasOption("i")) {
+                iPercent = Integer.parseInt(line.getOptionValue("i"));
+            }
+
+            constraints = new HashSet<String>();
+            for (String s : line.getArgs()) {
+                constraints.add(s);
+            }
 
 
             if (line.hasOption("h")) {
@@ -155,13 +152,47 @@ public class FindPlan {
         Model model = getModel();
         Set<SatConstraint> constraints = getConstraints();
         Model fixed_model = EvaluationTools.prepareModel(model, constraints);
+        System.out.println("Current Load: " + EvaluationTools.currentLoad(fixed_model));
         if (cont) for (SatConstraint c : constraints) c.setContinuous(true);
-        IncreasingLoad incLoad = new IncreasingLoad(fixed_model, constraints);
-        ReconfigurationPlan plan = incLoad.run();
+        ReconfigurationPlan plan = new DefaultReconfigurationPlan(fixed_model);
+        switch (EventType.valueOf(event)) {
+            case load:
+                IncreasingLoad incLoad = new IncreasingLoad(fixed_model, constraints);
+                plan = incLoad.run();
+                break;
+
+            case failure:
+                HardwareFailures failures = new HardwareFailures(fixed_model, constraints);
+                plan = failures.run();
+                break;
+
+            case peak:
+                CpuPeak cpuPeak = new CpuPeak(fixed_model, constraints);
+                cpuPeak.setPercent(iPercent);
+                plan = cpuPeak.run();
+                break;
+        }
+
         if (plan == null) {
             System.out.println("The constraints are already satisfied or BtrPlace has no solution");
             System.exit(-1);
         }
         recordPlan(plan);
+        System.out.println("After Load: " + EvaluationTools.currentLoad(plan.getResult()));
+        System.out.println(String.format("Plan: %d actions\t%d seconds", plan.getSize(), plan.getDuration()));
+//        recordModel(plan.getResult());
+    }
+
+    public static void recordModel(Model model) {
+        ModelConverter modelConverter = new ModelConverter();
+        try {
+            modelConverter.toJSON(model, new File("result" + model_file));
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(0);
+        } catch (JSONConverterException e) {
+            System.err.println(e.getMessage());
+            System.exit(0);
+        }
     }
 }

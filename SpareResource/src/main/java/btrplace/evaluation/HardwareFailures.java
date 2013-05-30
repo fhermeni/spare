@@ -4,8 +4,6 @@ import btrplace.model.Model;
 import btrplace.model.constraint.Offline;
 import btrplace.model.constraint.SatConstraint;
 import btrplace.plan.ReconfigurationPlan;
-import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
-import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 
 import java.util.HashSet;
 import java.util.Random;
@@ -17,24 +15,21 @@ import java.util.UUID;
  * Date: 5/7/13
  * Time: 2:36 PM
  */
-class HardwareFailures {
+public class HardwareFailures extends VariationType {
 
-    private ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
-    private Model model;
-    private Set<SatConstraint> constraints;
     private Set<Integer> offIds;
     private int node_size;
     private Random rand;
 
-    public HardwareFailures(Model m, Set<SatConstraint> c) {
-        model = m;
-        constraints = c;
+    public HardwareFailures(Model m, Set<SatConstraint> satConstraints) {
+        super(m, satConstraints);
+    }
+
+
+    public ReconfigurationPlan run() {
         node_size = model.getMapping().getAllNodes().size();
         offIds = new HashSet<Integer>(node_size);
         rand = new Random(System.nanoTime() % 100000);
-    }
-
-    public ReconfigurationPlan run() {
         constraints.add(shutdownRandomNode());
         ReconfigurationPlan plan = EvaluationTools.solve(cra, model, constraints);
         return plan;

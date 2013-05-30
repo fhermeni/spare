@@ -70,6 +70,36 @@ public class ModelGenerator {
         return model;
     }
 
+    public Model generateModel(int n, int vm, boolean heterogeneous) {
+        if (heterogeneous) {
+            return generateModel(n, vm);
+        } else {
+            NUMBER_OF_NODE = n;
+            NUMBER_OF_VM = vm;
+            nodes = new UUID[NUMBER_OF_NODE];
+            vms = new UUID[NUMBER_OF_VM];
+
+            for (int i = 0; i < NUMBER_OF_NODE; i++) {
+                UUID uuid = new UUID(1, i);
+                nodes[i] = uuid;
+                cpus.set(uuid, 4);
+                mems.set(uuid, 8);
+            }
+
+            for (int i = 0; i < NUMBER_OF_VM; i++) {
+                UUID uuid = new UUID(0, i);
+                vms[i] = uuid;
+                cpus.set(uuid, 1);
+                mems.set(uuid, 1);
+            }
+            mapping = generateMapping();
+            model = new DefaultModel(mapping);
+            model.attach(cpus);
+            model.attach(mems);
+            return model;
+        }
+    }
+
 
     private Mapping generateMapping() {
         Mapping map = new DefaultMapping();

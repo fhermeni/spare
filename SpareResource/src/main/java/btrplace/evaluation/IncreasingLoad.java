@@ -5,8 +5,6 @@ import btrplace.model.constraint.Preserve;
 import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
-import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
-import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 
 import java.util.*;
 
@@ -15,20 +13,15 @@ import java.util.*;
  * Date: 5/22/13
  * Time: 12:01 AM
  */
-public class IncreasingLoad {
-    private static ChocoReconfigurationAlgorithm cra = new DefaultChocoReconfigurationAlgorithm();
-    private Model model;
-    private Set<SatConstraint> constraints;
+public class IncreasingLoad extends VariationType {
 
-    public IncreasingLoad(Model m, Set<SatConstraint> c) {
-        model = m;
-        constraints = c;
+    public IncreasingLoad(Model m, Set<SatConstraint> satConstraints) {
+        super(m, satConstraints);
     }
 
     public IncreasingLoad(Model m, SatConstraint c) {
-        this(m, new HashSet<SatConstraint>(Arrays.asList(c)));
+        super(m, new HashSet<SatConstraint>(Collections.singleton(c)));
     }
-
 
     public ReconfigurationPlan run() {
         constraints.addAll(preserveForInvolveVMs());

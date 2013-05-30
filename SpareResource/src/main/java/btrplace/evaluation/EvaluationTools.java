@@ -1,8 +1,10 @@
 package btrplace.evaluation;
 
 import btrplace.model.DefaultModel;
+import btrplace.model.Mapping;
 import btrplace.model.Model;
 import btrplace.model.constraint.SatConstraint;
+import btrplace.model.view.ShareableResource;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.Action;
 import btrplace.solver.SolverException;
@@ -13,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * User: TU HUYNH DANG
@@ -99,5 +102,23 @@ public class EvaluationTools {
             System.err.println(e.getMessage());   //To change body of catch statement use File | Settings | File Templates.
         }
         return result;
+    }
+
+    static public int currentLoad(Model model) {
+        Mapping mapping = model.getMapping();
+        Set<UUID> onlineNodes = mapping.getOnlineNodes();
+        Set<UUID> runningVMs = mapping.getRunningVMs();
+        ShareableResource sr = (ShareableResource) model.getView("ShareableResource.cpu");
+        int capacity = sr.sum(onlineNodes, true);
+        int used = sr.sum(runningVMs, true);
+        return (100 * used) / capacity;
+    }
+
+    static public int capacity(Model model) {
+        Mapping mapping = model.getMapping();
+        Set<UUID> onlineNodes = mapping.getOnlineNodes();
+        ShareableResource sr = (ShareableResource) model.getView("ShareableResource.cpu");
+        return sr.sum(onlineNodes, true);
+
     }
 }

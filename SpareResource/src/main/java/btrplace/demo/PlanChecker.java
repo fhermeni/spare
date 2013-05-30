@@ -22,7 +22,7 @@ import java.util.Set;
 public class PlanChecker {
 
     private static boolean cont;
-    private static String constraints;
+    private static HashSet<String> constraints;
     private static String plan_file;
 
     public static void main(String[] args) {
@@ -31,11 +31,15 @@ public class PlanChecker {
         ReconfigurationPlanConverter planConverter = new ReconfigurationPlanConverter();
         SatConstraintsConverter satConstraintsConverter = new SatConstraintsConverter();
         try {
+            Set<SatConstraint> dConstr = new HashSet<SatConstraint>();
             ReconfigurationPlan plan = planConverter.fromJSON(new File(plan_file));
-            List<SatConstraint> satConstraint = satConstraintsConverter.listFromJSON(new File(constraints));
-            Set<SatConstraint> dConstr = new HashSet<SatConstraint>(satConstraint);
+            for (String s : constraints) {
+                List<SatConstraint> satConstraint = satConstraintsConverter.listFromJSON(new File(s));
+                dConstr.addAll(new HashSet<SatConstraint>(satConstraint));
+
+            }
             if (!cont) {
-                dConstr = EvaluationTools.toDiscrete(new HashSet<SatConstraint>(satConstraint));
+                dConstr = EvaluationTools.toDiscrete(dConstr);
             }
             SatConstraint disSatisfied = check(plan, dConstr);
             if (disSatisfied == null) {
@@ -97,9 +101,9 @@ public class PlanChecker {
             }
 
 
+            constraints = new HashSet<String>();
             for (String s : line.getArgs()) {
-                constraints = s;
-                break;
+                constraints.add(s);
             }
 
         } catch (ParseException e) {

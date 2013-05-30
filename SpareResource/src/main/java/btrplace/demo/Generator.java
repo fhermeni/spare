@@ -21,6 +21,7 @@ import java.util.Set;
 public class Generator {
 
     private static boolean continuous;
+    private static boolean identical;
     private static String constraint_name;
     private static int nNode;
     private static int nVM;
@@ -40,6 +41,7 @@ public class Generator {
     private static void parseOptions(String[] args) {
         Options options = new Options();
         options.addOption("c", false, "For continuous restriction");
+        options.addOption("i", false, "For continuous restriction");
         options.addOption("n", true, "Number of nodes");
         options.addOption("m", true, "Number of VMs");
         options.addOption("t", true, "Constraint Name");
@@ -52,6 +54,10 @@ public class Generator {
 
             if (line.hasOption("c")) {
                 continuous = true;
+            }
+
+            if (line.hasOption("i")) {
+                identical = true;
             }
 
             if (line.hasOption("n")) {
@@ -84,7 +90,7 @@ public class Generator {
     public static void generateConstraint(Constraint name) {
         Set<SatConstraint> constraintSet = new HashSet<SatConstraint>();
         ModelGenerator gen = new ModelGenerator();
-        Model model = gen.generateModel(nNode, nVM);
+        Model model = gen.generateModel(nNode, nVM, identical);
         switch (name) {
             case among:
                 Among among = new Among(gen.getRandomVMs(vmsSize), gen.getDistinctSet(nodeSize), continuous);

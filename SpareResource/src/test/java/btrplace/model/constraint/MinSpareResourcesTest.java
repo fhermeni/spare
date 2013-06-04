@@ -18,19 +18,14 @@
 
 package btrplace.model.constraint;
 
-import btrplace.model.DefaultMapping;
-import btrplace.model.DefaultModel;
-import btrplace.model.Mapping;
-import btrplace.model.Model;
+import btrplace.model.*;
 import btrplace.model.view.ShareableResource;
-import btrplace.test.PremadeElements;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Unit tests for {@link MinSpareResources}.
@@ -38,33 +33,19 @@ import java.util.UUID;
  * @author Tu Huynh Dang
  */
 
-public class MinSpareResourcesTest implements PremadeElements {
-
-    @Test
-    public void testMinSpareResources() {
-        Set<UUID> s = new HashSet<UUID>(Arrays.asList(n1, n2));
-        MinSpareResources c = new MinSpareResources(s, "ucpu", 3);
-        Assert.assertEquals(s, c.getInvolvedNodes());
-        Assert.assertEquals("ucpu", c.getResource());
-        Assert.assertEquals(3, c.getAmount());
-        Assert.assertTrue(c.getInvolvedVMs().isEmpty());
-        Assert.assertFalse(c.toString().contains("null"));
-        Assert.assertFalse(c.isContinuous());
-        Assert.assertTrue(c.setContinuous(true));
-        Assert.assertTrue(c.isContinuous());
-
-        c = new MinSpareResources(s, "ucpu", 3, true);
-        Assert.assertTrue(c.isContinuous());
-    }
-
-    @Test
-    public void testIsSatisfiedModel() {
-
-    }
+public class MinSpareResourcesTest {
 
     @Test
     public void testDiscreteIsSatisfied() {
-        Mapping map = new DefaultMapping();
+        Model model = new DefaultModel();
+        Mapping map = model.getMapping();
+        Node n1 = model.newNode();
+        Node n2 = model.newNode();
+        Node n3 = model.newNode();
+        VM vm1 = model.newVM();
+        VM vm2 = model.newVM();
+        VM vm3 = model.newVM();
+        VM vm4 = model.newVM();
         map.addOnlineNode(n1);
         map.addOnlineNode(n2);
         map.addOnlineNode(n3);
@@ -74,26 +55,25 @@ public class MinSpareResourcesTest implements PremadeElements {
         map.addRunningVM(vm3, n2);
         map.addRunningVM(vm4, n3);
 
-        Model mo = new DefaultModel(map);
-        ShareableResource rc = new ShareableResource("cpu", 1);
+        ShareableResource rc = new ShareableResource("cpu", 1, 1);
 
-        rc.set(vm2, 2);
-        rc.set(n1, 4);
-        rc.set(n2, 2);
-        rc.set(n3, 2);
-        mo.attach(rc);
-        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3));
+        rc.setConsumption(vm2, 2);
+        rc.setCapacity(n1, 4);
+        rc.setCapacity(n2, 2);
+        rc.setCapacity(n3, 2);
+        model.attach(rc);
+        Set<Node> nodes = new HashSet<Node>(Arrays.asList(n1, n2, n3));
 
         MinSpareResources msr = new MinSpareResources(nodes, "cpu", 3);
 
-        Assert.assertTrue(msr.isSatisfied(mo));
-        rc.set(vm1, 3);
-        Assert.assertFalse(msr.isSatisfied(mo));
+        Assert.assertTrue(msr.isSatisfied(model));
+        rc.setConsumption(vm1, 3);
+        Assert.assertFalse(msr.isSatisfied(model));
 
         map.addSleepingVM(vm2, n1);
         map.addSleepingVM(vm3, n1);
 
-        Assert.assertTrue(msr.isSatisfied(mo));
+        Assert.assertTrue(msr.isSatisfied(model));
 
     }
 

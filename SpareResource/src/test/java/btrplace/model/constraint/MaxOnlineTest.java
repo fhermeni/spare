@@ -1,48 +1,36 @@
 package btrplace.model.constraint;
 
-import btrplace.model.DefaultMapping;
 import btrplace.model.DefaultModel;
 import btrplace.model.Mapping;
 import btrplace.model.Model;
+import btrplace.model.Node;
 import btrplace.plan.DefaultReconfigurationPlan;
 import btrplace.plan.ReconfigurationPlan;
 import btrplace.plan.event.BootNode;
 import btrplace.plan.event.ShutdownNode;
-import btrplace.test.PremadeElements;
 import junit.framework.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
-public class MaxOnlinesTest implements PremadeElements {
-
-    @Test
-    public void maxOnlinesSetUUIDintboolean() {
-        Set<UUID> s = new HashSet<UUID>(Arrays.asList(n1, n2));
-        MaxOnlines mo = new MaxOnlines(s, 1);
-        Assert.assertEquals(s, mo.getInvolvedNodes());
-        Assert.assertEquals(1, mo.getAmount());
-        Assert.assertFalse(mo.isContinuous());
-        mo.setContinuous(true);
-        Assert.assertTrue(mo.isContinuous());
-
-        System.out.println(mo.toString());
-    }
+public class MaxOnlineTest {
 
     @Test
     public void isSatisfiedModel() {
-        Mapping map = new DefaultMapping();
+        Model model = new DefaultModel();
+        Mapping map = model.getMapping();
+        Node n1 = model.newNode();
+        Node n2 = model.newNode();
+        Node n3 = model.newNode();
 
         map.addOnlineNode(n1);
         map.addOnlineNode(n2);
         map.addOfflineNode(n3);
 
-        Model model = new DefaultModel(map);
-        Set<UUID> s = new HashSet<UUID>(Arrays.asList(n1, n2, n3));
-        MaxOnlines mo = new MaxOnlines(s, 2);
+        Set<Node> s = new HashSet<Node>(Arrays.asList(n1, n2, n3));
+        MaxOnline mo = new MaxOnline(s, 2);
 
         Assert.assertTrue(mo.isSatisfied(model));
 
@@ -52,15 +40,18 @@ public class MaxOnlinesTest implements PremadeElements {
 
     @Test
     public void isSatisfiedReconfigurationPlan() {
-        Mapping map = new DefaultMapping();
+        Model model = new DefaultModel();
+        Mapping map = model.getMapping();
+        Node n1 = model.newNode();
+        Node n2 = model.newNode();
+        Node n3 = model.newNode();
 
         map.addOnlineNode(n1);
         map.addOnlineNode(n2);
         map.addOfflineNode(n3);
 
-        Model model = new DefaultModel(map);
-        Set<UUID> s = new HashSet<UUID>(Arrays.asList(n1, n2, n3));
-        MaxOnlines mo = new MaxOnlines(s, 2);
+        Set<Node> s = new HashSet<Node>(Arrays.asList(n1, n2, n3));
+        MaxOnline mo = new MaxOnline(s, 2);
 
         ReconfigurationPlan plan = new DefaultReconfigurationPlan(model);
 

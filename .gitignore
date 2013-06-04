@@ -1,4 +1,5 @@
 /testng.xml
+*.iml
 *.class
 *.jar
 *.json

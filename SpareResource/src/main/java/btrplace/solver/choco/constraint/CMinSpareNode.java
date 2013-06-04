@@ -1,6 +1,8 @@
 package btrplace.solver.choco.constraint;
 
 import btrplace.model.Model;
+import btrplace.model.Node;
+import btrplace.model.VM;
 import btrplace.model.constraint.MinSpareNode;
 import btrplace.model.constraint.SatConstraint;
 import btrplace.solver.SolverException;
@@ -19,7 +21,6 @@ import choco.kernel.solver.variables.scheduling.TaskVar;
 
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.UUID;
 
 import static btrplace.solver.choco.chocoUtil.ChocoUtils.postIfOnlyIf;
 
@@ -39,7 +40,7 @@ public class CMinSpareNode implements ChocoSatConstraint {
     }
 
     @Override
-    public Set<UUID> getMisPlacedVMs(Model m) {
+    public Set<VM> getMisPlacedVMs(Model m) {
         return m.getMapping().getRunningVMs(cstr.getInvolvedNodes());
     }
 
@@ -75,15 +76,15 @@ public class CMinSpareNode implements ChocoSatConstraint {
                     // The end moment of node being idle
                     IntDomainVar[] idle_ends = new IntDomainVar[NUMBER_OF_NODE];
                     int i = 0;
-                    for (UUID n : cstr.getInvolvedNodes()) {
+                    for (Node n : cstr.getInvolvedNodes()) {
                         NodeActionModel na = rp.getNodeAction(n);
                         idle_starts[i] = solver.createBoundIntVar("IS(" + n + ")", 0, MAX_TIME);
                         idle_ends[i] = solver.createBoundIntVar("IE(" + n + ")", 0, MAX_TIME);
                         ArrayList<IntDomainVar> CElist = new ArrayList<IntDomainVar>();
                         CElist.add(0, idle_starts[i]);
-                        Set<UUID> vms = rp.getSourceModel().getMapping().getRunningVMs(n);
+                        Set<VM> vms = rp.getSourceModel().getMapping().getRunningVMs(n);
                         if (!vms.isEmpty()) {
-                            for (UUID vm : vms) {
+                            for (VM vm : vms) {
                                 VMActionModel vma = rp.getVMAction(vm);
                                 Slice c = vma.getCSlice();
                                 CElist.add(c.getEnd());
@@ -126,7 +127,7 @@ public class CMinSpareNode implements ChocoSatConstraint {
         // Extract all the state of the involved nodes (all nodes in this case)
         IntDomainVar[] states = new IntDomainVar[NUMBER_OF_NODE];
         int j = 0;
-        for (UUID n : cstr.getInvolvedNodes()) {
+        for (Node n : cstr.getInvolvedNodes()) {
             states[j++] = rp.getNodeAction(n).getState();
         }
         IntDomainVar[] VMsOnAllNodes = rp.getNbRunningVMs();
@@ -135,7 +136,7 @@ public class CMinSpareNode implements ChocoSatConstraint {
         IntDomainVar[] idles = new IntDomainVar[NUMBER_OF_NODE];
         int i = 0;
         int maxVMs = rp.getSourceModel().getMapping().getAllVMs().size();
-        for (UUID n : cstr.getInvolvedNodes()) {
+        for (Node n : cstr.getInvolvedNodes()) {
             vmsOnInvolvedNodes[i] = solver.createBoundIntVar("nVMs" + n, 0, maxVMs);
             IntDomainVar state = rp.getNodeAction(n).getState();
             // If the node is offline -> the temporary variable is -1, otherwise, it equals the number of VMs on that node

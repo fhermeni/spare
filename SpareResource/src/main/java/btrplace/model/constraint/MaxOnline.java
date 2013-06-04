@@ -1,11 +1,12 @@
 package btrplace.model.constraint;
 
+import btrplace.model.Node;
+import btrplace.model.VM;
 import btrplace.model.constraint.checker.MaxOnlinesChecker;
 import btrplace.model.constraint.checker.SatConstraintChecker;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * A constraint to force a set of nodes to have a maximum number (n) of nodes to
@@ -22,7 +23,7 @@ import java.util.UUID;
  * @author Tu Huynh Dang
  */
 
-public class MaxOnlines extends SatConstraint {
+public class MaxOnline extends SatConstraint {
 
     /**
      * number of reserved nodes
@@ -36,12 +37,12 @@ public class MaxOnlines extends SatConstraint {
      * @param n          The reserved number of spare nodes
      * @param continuous {@code true} for continuous restriction
      */
-    public MaxOnlines(Set<UUID> nodes, int n, boolean continuous) {
-        super(Collections.<UUID>emptySet(), nodes, continuous);
+    public MaxOnline(Set<Node> nodes, int n, boolean continuous) {
+        super(Collections.<VM>emptySet(), nodes, continuous);
         qty = n;
     }
 
-    public MaxOnlines(Set<UUID> nodes, int n) {
+    public MaxOnline(Set<Node> nodes, int n) {
         this(nodes, n, false);
     }
 
@@ -66,7 +67,7 @@ public class MaxOnlines extends SatConstraint {
             return false;
         }
 
-        MaxOnlines that = (MaxOnlines) o;
+        MaxOnline that = (MaxOnline) o;
 
         return qty == that.getAmount() && getInvolvedNodes().equals(that.getInvolvedNodes())
                 && this.isContinuous() == that.isContinuous();

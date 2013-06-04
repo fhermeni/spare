@@ -1,8 +1,7 @@
 package btrplace.json.model.constraint;
 
-import btrplace.json.AbstractJSONObjectConverter;
 import btrplace.json.JSONConverterException;
-import btrplace.model.constraint.MaxOnlines;
+import btrplace.model.constraint.MaxOnline;
 import net.minidev.json.JSONObject;
 
 /**
@@ -10,10 +9,10 @@ import net.minidev.json.JSONObject;
  *
  * @author Tu Huynh Dang
  */
-public class MaxOnlinesConverter extends SatConstraintConverter<MaxOnlines> {
+public class MaxOnlinesConverter extends SatConstraintConverter<MaxOnline> {
     @Override
-    public Class<MaxOnlines> getSupportedConstraint() {
-        return MaxOnlines.class;
+    public Class<MaxOnline> getSupportedConstraint() {
+        return MaxOnline.class;
     }
 
     @Override
@@ -22,20 +21,19 @@ public class MaxOnlinesConverter extends SatConstraintConverter<MaxOnlines> {
     }
 
     @Override
-    public MaxOnlines fromJSON(JSONObject in) throws JSONConverterException {
+    public MaxOnline fromJSON(JSONObject in) throws JSONConverterException {
         checkId(in);
-        return new MaxOnlines(AbstractJSONObjectConverter.requiredUUIDs(in, "nodes"),
-                (int) AbstractJSONObjectConverter.requiredLong(in, "amount"),
-                AbstractJSONObjectConverter.requiredBoolean(in, "continuous"));
+        return new MaxOnline(requiredNodes(in, "nodes"), requiredInt(in, "amount"),
+                requiredBoolean(in, "continuous"));
     }
 
     @Override
-    public JSONObject toJSON(MaxOnlines maxOnlines) throws JSONConverterException {
+    public JSONObject toJSON(MaxOnline maxOnline) throws JSONConverterException {
         JSONObject c = new JSONObject();
         c.put("id", getJSONId());
-        c.put("nodes", AbstractJSONObjectConverter.uuidsToJSON(maxOnlines.getInvolvedNodes()));
-        c.put("amount", (long) maxOnlines.getAmount());
-        c.put("continuous", maxOnlines.isContinuous());
+        c.put("nodes", nodesToJSON(maxOnline.getInvolvedNodes()));
+        c.put("amount", maxOnline.getAmount());
+        c.put("continuous", maxOnline.isContinuous());
         return c;
     }
 

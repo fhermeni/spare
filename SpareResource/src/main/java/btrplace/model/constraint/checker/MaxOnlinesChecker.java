@@ -2,20 +2,20 @@ package btrplace.model.constraint.checker;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.constraint.MaxOnlines;
+import btrplace.model.Node;
+import btrplace.model.constraint.MaxOnline;
 import btrplace.plan.event.BootNode;
 import btrplace.plan.event.ShutdownNode;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * User: TU HUYNH DANG
  * Date: 5/16/13
  * Time: 2:46 PM
  */
-public class MaxOnlinesChecker extends AllowAllConstraintChecker<MaxOnlines> {
+public class MaxOnlinesChecker extends AllowAllConstraintChecker<MaxOnline> {
     /**
      * Make a new checker.
      *
@@ -24,16 +24,16 @@ public class MaxOnlinesChecker extends AllowAllConstraintChecker<MaxOnlines> {
 
     private int current_online;
 
-    public MaxOnlinesChecker(MaxOnlines cstr) {
+    public MaxOnlinesChecker(MaxOnline cstr) {
         super(cstr);
     }
 
     @Override
     public boolean startsWith(Model mo) {
         Mapping map = mo.getMapping();
-        Set<UUID> onlineNodes = map.getOnlineNodes();
+        Set<Node> onlineNodes = map.getOnlineNodes();
         // Keep the below line to not modify the RP variable
-        Set<UUID> onlineNodesCopy = new HashSet<UUID>(onlineNodes);
+        Set<Node> onlineNodesCopy = new HashSet<Node>(onlineNodes);
         onlineNodesCopy.retainAll(getNodes());
         current_online = onlineNodesCopy.size();
         return true;
@@ -60,9 +60,9 @@ public class MaxOnlinesChecker extends AllowAllConstraintChecker<MaxOnlines> {
     @Override
     public boolean endsWith(Model mo) {
         Mapping map = mo.getMapping();
-        Set<UUID> onlineNodes = map.getOnlineNodes();
+        Set<Node> onlineNodes = map.getOnlineNodes();
         // Keep the below line to not modify the RP variable
-        Set<UUID> onlineNodesCopy = new HashSet<UUID>(onlineNodes);
+        Set<Node> onlineNodesCopy = new HashSet<Node>(onlineNodes);
         onlineNodesCopy.retainAll(getNodes());
         current_online = onlineNodesCopy.size();
         return (current_online <= getConstraint().getAmount());

@@ -1,9 +1,6 @@
 package btrplace.model.constraint;
 
-import btrplace.model.DefaultMapping;
-import btrplace.model.DefaultModel;
-import btrplace.model.Mapping;
-import btrplace.model.Model;
+import btrplace.model.*;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.DefaultReconfigurationPlan;
 import btrplace.plan.ReconfigurationPlan;
@@ -12,47 +9,34 @@ import btrplace.plan.event.ShutdownNode;
 import btrplace.plan.event.ShutdownVM;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.MappingBuilder;
-import btrplace.test.PremadeElements;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Unit tests for {@link MaxSpareResources}.
  *
  * @author Tu Huynh Dang
  */
-public class MaxSpareResourcesTest implements PremadeElements {
+public class MaxSpareResourcesTest {
 
     @Test
-    public void maxSpareResourcesSetUUIDStringint() {
-        Set<UUID> s = new HashSet<UUID>(Arrays.asList(n1, n2));
-        MaxSpareResources c = new MaxSpareResources(s, "vcpu", 3);
-        Assert.assertEquals(s, c.getInvolvedNodes());
-        Assert.assertEquals("vcpu", c.getResource());
-        Assert.assertEquals(3, c.getAmount());
-        Assert.assertTrue(c.getInvolvedVMs().isEmpty());
-        Assert.assertFalse(c.toString().contains("null"));
-        Assert.assertFalse(c.isContinuous());
-        Assert.assertTrue(c.setContinuous(true));
-        Assert.assertTrue(c.isContinuous());
+    public void testSatisfiedDiscrete() {
+        Model model = new DefaultModel();
+        Mapping map = model.getMapping();
+        Node n1 = model.newNode();
+        Node n2 = model.newNode();
+        Node n3 = model.newNode();
+        Node n4 = model.newNode();
+        VM vm1 = model.newVM();
+        VM vm2 = model.newVM();
+        VM vm3 = model.newVM();
+        VM vm4 = model.newVM();
+        VM vm5 = model.newVM();
 
-    }
-
-    @Test
-    public void maxSpareResourcesCollectionUUIDStringintboolean() {
-        Set<UUID> s = new HashSet<UUID>(Arrays.asList(n1, n2));
-        MaxSpareResources c = new MaxSpareResources(s, "vcpu", 3, true);
-        Assert.assertTrue(c.isContinuous());
-    }
-
-    @Test
-    public void isSatisfiedDiscreteModelTest() {
-        Mapping map = new DefaultMapping();
         map.addOnlineNode(n1);
         map.addOnlineNode(n2);
         map.addOnlineNode(n3);
@@ -61,30 +45,28 @@ public class MaxSpareResourcesTest implements PremadeElements {
         map.addRunningVM(vm2, n1);
         map.addRunningVM(vm3, n2);
         map.addRunningVM(vm4, n3);
-
-        Model mo = new DefaultModel(map);
-        ShareableResource rc = new ShareableResource("vcpu", 2);
-
-        rc.set(n1, 4);
-        rc.set(n2, 4);
-
-        mo.attach(rc);
-        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3));
-
-        MaxSpareResources msr = new MaxSpareResources(nodes, "vcpu", 2);
-
-        Assert.assertTrue(msr.isSatisfied(mo));
-        rc.set(vm1, 1);
-        Assert.assertFalse(msr.isSatisfied(mo));
-
+        ShareableResource rc = new ShareableResource("vcpu", 2, 1);
+        model.attach(rc);
+        Set<Node> nodes = new HashSet<Node>(Arrays.asList(n1, n2, n4));
+        MaxSpareResources msr = new MaxSpareResources(nodes, "vcpu", 0);
+        Assert.assertFalse(msr.isSatisfied(model));
         map.addRunningVM(vm5, n2);
-
-        Assert.assertTrue(msr.isSatisfied(mo));
+        Assert.assertTrue(msr.isSatisfied(model));
     }
 
     @Test
     public void isSatisfiedContinuousModelTest() {
-        Mapping map = new DefaultMapping();
+        Model model = new DefaultModel();
+        Mapping map = model.getMapping();
+        Node n1 = model.newNode();
+        Node n2 = model.newNode();
+        Node n3 = model.newNode();
+        Node n4 = model.newNode();
+        VM vm1 = model.newVM();
+        VM vm2 = model.newVM();
+        VM vm3 = model.newVM();
+        VM vm4 = model.newVM();
+        VM vm5 = model.newVM();
         map.addOnlineNode(n1);
         map.addOnlineNode(n2);
         map.addOnlineNode(n3);
@@ -95,21 +77,20 @@ public class MaxSpareResourcesTest implements PremadeElements {
         map.addRunningVM(vm4, n2);
         map.addRunningVM(vm5, n3);
 
-        Model mo = new DefaultModel(map);
-        ShareableResource rc = new ShareableResource("vcpu", 2);
+        ShareableResource rc = new ShareableResource("vcpu", 2, 2);
 
-        rc.set(n1, 5);
-        rc.set(n2, 5);
-        rc.set(vm4, 1);
+        rc.setCapacity(n1, 5);
+        rc.setCapacity(n2, 5);
+        rc.setConsumption(vm4, 1);
 
-        mo.attach(rc);
+        model.attach(rc);
 
-        Set<UUID> node1and3 = new HashSet<UUID>(Arrays.asList(n1, n3));
+        Set<Node> node1and3 = new HashSet<Node>(Arrays.asList(n1, n3));
 
         MaxSpareResources msr = new MaxSpareResources(node1and3, "vcpu", 2);
         Overbook oc = new Overbook(map.getAllNodes(), "vcpu", 1);
 
-        ReconfigurationPlan plan = new DefaultReconfigurationPlan(mo);
+        ReconfigurationPlan plan = new DefaultReconfigurationPlan(model);
         Assert.assertTrue(msr.isSatisfied(plan));
         Assert.assertTrue(oc.isSatisfied(plan));
 
@@ -128,19 +109,26 @@ public class MaxSpareResourcesTest implements PremadeElements {
 
     @Test(enabled = false)
     public void testMaxSpareResourcesContinuousSimple() throws SolverException {
+        Model model = new DefaultModel();
+        Node n1 = model.newNode();
+        Node n2 = model.newNode();
+        VM vm1 = model.newVM();
+        VM vm2 = model.newVM();
+        VM vm3 = model.newVM();
 
-        Mapping m = new MappingBuilder().on(n1, n2)
+        Mapping mapping = new MappingBuilder().on(n1, n2)
                 .run(n1, vm1, vm3).run(n2, vm2).build();
 
-        ShareableResource rc = new ShareableResource("vcpu", 1);
-        rc.set(n1, 3);
-        rc.set(n2, 2);
-        Model mo = new DefaultModel(m);
-        mo.attach(rc);
-        MaxSpareResources msr = new MaxSpareResources(m.getAllNodes(), "vcpu", 2, true);
-        Overbook oc = new Overbook(m.getAllNodes(), "vcpu", 1);
+        ShareableResource rc = new ShareableResource("vcpu", 1, 1);
+        rc.setCapacity(n1, 3);
+        rc.setCapacity(n2, 2);
 
-        ReconfigurationPlan plan = new DefaultReconfigurationPlan(mo);
+        MappingUtils.fill(mapping, model.getMapping());
+        model.attach(rc);
+        MaxSpareResources msr = new MaxSpareResources(mapping.getAllNodes(), "vcpu", 2, true);
+        Overbook oc = new Overbook(mapping.getAllNodes(), "vcpu", 1);
+
+        ReconfigurationPlan plan = new DefaultReconfigurationPlan(model);
         Assert.assertTrue(msr.isSatisfied(plan));
         Assert.assertTrue(oc.isSatisfied(plan));
 

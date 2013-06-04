@@ -1,12 +1,13 @@
 package btrplace.model.constraint;
 
+import btrplace.model.Node;
+import btrplace.model.VM;
 import btrplace.model.constraint.checker.MinSpareNodeChecker;
 import btrplace.model.constraint.checker.SatConstraintChecker;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * A constraint to force a set of nodes to reserve a minimum number of spare
@@ -31,7 +32,7 @@ public class MinSpareNode extends SatConstraint {
      */
     private final int qty;
 
-    private HashMap<UUID, Integer> nodemap = new HashMap<UUID, Integer>();
+    private HashMap<Node, Integer> nodemap = new HashMap<Node, Integer>();
 
     /**
      * Make a new constraint with a discrete restriction.
@@ -39,7 +40,7 @@ public class MinSpareNode extends SatConstraint {
      * @param nodes the group of nodes
      * @param n     the number of nodes to be reserved
      */
-    public MinSpareNode(Set<UUID> nodes, int n) {
+    public MinSpareNode(Set<Node> nodes, int n) {
         this(nodes, n, false);
 
     }
@@ -51,11 +52,11 @@ public class MinSpareNode extends SatConstraint {
      * @param n          the number of nodes to be reserved
      * @param continuous {@code true} for a continuous restriction.
      */
-    public MinSpareNode(Set<UUID> servers, int n, boolean continuous) {
-        super(Collections.<UUID>emptySet(), servers, continuous);
+    public MinSpareNode(Set<Node> servers, int n, boolean continuous) {
+        super(Collections.<VM>emptySet(), servers, continuous);
         qty = n;
         int i = 0;
-        for (UUID node : getInvolvedNodes()) {
+        for (Node node : getInvolvedNodes()) {
             nodemap.put(node, i);
             i++;
         }

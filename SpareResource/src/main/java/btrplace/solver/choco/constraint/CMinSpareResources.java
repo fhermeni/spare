@@ -1,6 +1,8 @@
 package btrplace.solver.choco.constraint;
 
 import btrplace.model.Model;
+import btrplace.model.Node;
+import btrplace.model.VM;
 import btrplace.model.constraint.MinSpareResources;
 import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
@@ -17,7 +19,6 @@ import gnu.trove.list.array.TIntArrayList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 public class CMinSpareResources implements ChocoSatConstraint {
 
@@ -34,7 +35,7 @@ public class CMinSpareResources implements ChocoSatConstraint {
     }
 
     @Override
-    public Set<UUID> getMisPlacedVMs(Model m) {
+    public Set<VM> getMisPlacedVMs(Model m) {
         return m.getMapping().getRunningVMs(cstr.getInvolvedNodes());
     }
 
@@ -58,20 +59,20 @@ public class CMinSpareResources implements ChocoSatConstraint {
                 int[] alias = new int[cstr.getInvolvedNodes().size()];
                 int i = 0;
                 int capas = 0;
-                for (UUID n : cstr.getInvolvedNodes()) {
+                for (Node n : cstr.getInvolvedNodes()) {
                     alias[i++] = rp.getNode(n);
-                    capas += rcm.getSourceResource().get(n);
+                    capas += rcm.getSourceResource().getCapacity(n);
                 }
 
                 TIntArrayList cUse = new TIntArrayList();
                 List<IntDomainVar> dUse = new ArrayList<IntDomainVar>();
 
-                for (UUID vmId : rp.getVMs()) {
+                for (VM vmId : rp.getVMs()) {
                     VMActionModel a = rp.getVMAction(vmId);
                     Slice c = a.getCSlice();
                     Slice d = a.getDSlice();
                     if (c != null) {
-                        cUse.add(rcm.getSourceResource().get(vmId));
+                        cUse.add(rcm.getSourceResource().getConsumption(vmId));
                     }
                     if (d != null) {
                         dUse.add(rcm.getVMsAllocation(rp.getVM(vmId)));
@@ -84,7 +85,7 @@ public class CMinSpareResources implements ChocoSatConstraint {
         }
         // get future state of involved nodes
         List<IntDomainVar> nodes_state = new ArrayList<IntDomainVar>(cstr.getInvolvedNodes().size());
-        for (UUID ni : cstr.getInvolvedNodes()) {
+        for (Node ni : cstr.getInvolvedNodes()) {
             nodes_state.add(rp.getNodeAction(ni).getState());
         }
 
@@ -94,9 +95,9 @@ public class CMinSpareResources implements ChocoSatConstraint {
         // caps is capacity of all involved nodes
         int[] caps = new int[nodes_state.size()];
         int i = 0;
-        for (UUID u : cstr.getInvolvedNodes()) {
+        for (Node u : cstr.getInvolvedNodes()) {
             vs.add(rcm.getVirtualUsage()[rp.getNode(u)]);
-            caps[i++] = rcm.getSourceResource().get(u);
+            caps[i++] = rcm.getSourceResource().getCapacity(u);
         }
 
         CPSolver s = rp.getSolver();

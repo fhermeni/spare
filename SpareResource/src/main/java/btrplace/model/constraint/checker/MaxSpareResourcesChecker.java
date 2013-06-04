@@ -2,13 +2,14 @@ package btrplace.model.constraint.checker;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
+import btrplace.model.Node;
+import btrplace.model.VM;
 import btrplace.model.constraint.MaxSpareResources;
 import btrplace.model.view.ShareableResource;
 import btrplace.plan.event.MigrateVM;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * User: TU HUYNH DANG
@@ -41,7 +42,7 @@ public class MaxSpareResourcesChecker extends AllowAllConstraintChecker<MaxSpare
     public boolean start(MigrateVM a) {
         ShareableResource rc = (ShareableResource) origin_model.getView(getConstraint().getResource());
         if (getConstraint().isContinuous() && getNodes().contains(a.getSourceNode())) {
-            return (spare_amount <= (spare_amount + rc.get(a.getVM())));
+            return (spare_amount <= (spare_amount + rc.getConsumption(a.getVM())));
         }
         return true;
     }
@@ -50,10 +51,10 @@ public class MaxSpareResourcesChecker extends AllowAllConstraintChecker<MaxSpare
     public void end(MigrateVM a) {
         ShareableResource rc = (ShareableResource) origin_model.getView(getConstraint().getResource());
         if (getConstraint().isContinuous() && getNodes().contains(a.getSourceNode())) {
-            spare_amount += rc.get(a.getVM());
+            spare_amount += rc.getConsumption(a.getVM());
         }
         if (getConstraint().isContinuous() && getNodes().contains(a.getDestinationNode())) {
-            spare_amount -= rc.get(a.getVM());
+            spare_amount -= rc.getConsumption(a.getVM());
         }
     }
 
@@ -61,20 +62,20 @@ public class MaxSpareResourcesChecker extends AllowAllConstraintChecker<MaxSpare
     public boolean endsWith(Model mo) {
         int spare = 0;
         Mapping map = mo.getMapping();
-        Set<UUID> onnodes = map.getOnlineNodes();
-        Set<UUID> nodes = new HashSet<UUID>(onnodes);
+        Set<Node> onnodes = map.getOnlineNodes();
+        Set<Node> nodes = new HashSet<Node>(onnodes);
         nodes.retainAll(getNodes());
         ShareableResource rc = (ShareableResource) mo.getView(ShareableResource.VIEW_ID_BASE +
                 getConstraint().getResource());
         if (rc == null) {
             return false;
         }
-        for (UUID nj : nodes) {
-            spare += rc.get(nj);
+        for (Node nj : nodes) {
+            spare += rc.getCapacity(nj);
         }
-        for (UUID nj : nodes) {
-            for (UUID vmId : mo.getMapping().getRunningVMs(nj)) {
-                spare -= rc.get(vmId);
+        for (Node nj : nodes) {
+            for (VM vmId : mo.getMapping().getRunningVMs(nj)) {
+                spare -= rc.getConsumption(vmId);
                 if (spare <= getConstraint().getAmount())
                     return true;
             }
@@ -85,18 +86,18 @@ public class MaxSpareResourcesChecker extends AllowAllConstraintChecker<MaxSpare
     public int spare(Model mo) {
         int spare = 0;
         Mapping map = mo.getMapping();
-        Set<UUID> onnodes = map.getOnlineNodes();
-        Set<UUID> nodes = new HashSet<UUID>(onnodes);
+        Set<Node> onnodes = map.getOnlineNodes();
+        Set<Node> nodes = new HashSet<Node>(onnodes);
         nodes.retainAll(getNodes());
 
         ShareableResource rc = (ShareableResource) mo.getView(ShareableResource.VIEW_ID_BASE +
                 getConstraint().getResource());
-        for (UUID nj : nodes) {
-            spare += rc.get(nj);
+        for (Node nj : nodes) {
+            spare += rc.getCapacity(nj);
         }
-        for (UUID nj : nodes) {
-            for (UUID vmId : mo.getMapping().getRunningVMs(nj)) {
-                spare -= rc.get(vmId);
+        for (Node nj : nodes) {
+            for (VM vmId : mo.getMapping().getRunningVMs(nj)) {
+                spare -= rc.getConsumption(vmId);
             }
         }
         return spare;

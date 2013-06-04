@@ -2,6 +2,8 @@ package btrplace.model.constraint;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
+import btrplace.model.Node;
+import btrplace.model.VM;
 import btrplace.model.constraint.checker.MinSpareResourcesChecker;
 import btrplace.model.constraint.checker.SatConstraintChecker;
 import btrplace.model.view.ShareableResource;
@@ -9,7 +11,6 @@ import btrplace.model.view.ShareableResource;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * A constraint to force a set of nodes to reserve a minimum number (n) of spare
@@ -47,7 +48,7 @@ public class MinSpareResources extends SatConstraint {
      * @param rc      the resource identifier
      * @param n       the number of resources to be reserved
      */
-    public MinSpareResources(Set<UUID> servers, String rc, int n) {
+    public MinSpareResources(Set<Node> servers, String rc, int n) {
         this(servers, rc, n, false);
 
     }
@@ -58,8 +59,8 @@ public class MinSpareResources extends SatConstraint {
      * @param n          the number of resources to be reserved
      * @param continuous {@code true} for a continuous restriction.
      */
-    public MinSpareResources(Set<UUID> servers, String rc, int n, boolean continuous) {
-        super(Collections.<UUID>emptySet(), servers, continuous);
+    public MinSpareResources(Set<Node> servers, String rc, int n, boolean continuous) {
+        super(Collections.<VM>emptySet(), servers, continuous);
         rcId = rc;
         qty = n;
     }
@@ -86,8 +87,8 @@ public class MinSpareResources extends SatConstraint {
     public boolean isSatisfied(Model i) {
         int spare = 0;
         Mapping map = i.getMapping();
-        Set<UUID> onnodes = map.getOnlineNodes();
-        Set<UUID> nodes = new HashSet<UUID>(onnodes);
+        Set<Node> onnodes = map.getOnlineNodes();
+        Set<Node> nodes = new HashSet<Node>(onnodes);
         nodes.retainAll(getInvolvedNodes());
 
         ShareableResource rc = (ShareableResource) i.getView(ShareableResource.VIEW_ID_BASE + rcId);
@@ -96,13 +97,13 @@ public class MinSpareResources extends SatConstraint {
             return false;
         }
 
-        for (UUID nj : nodes) {
-            spare += rc.get(nj);
+        for (Node nj : nodes) {
+            spare += rc.getCapacity(nj);
         }
 
-        for (UUID nj : nodes) {
-            for (UUID vmId : i.getMapping().getRunningVMs(nj)) {
-                spare -= rc.get(vmId);
+        for (Node nj : nodes) {
+            for (VM vmId : i.getMapping().getRunningVMs(nj)) {
+                spare -= rc.getConsumption(vmId);
                 if (spare < qty)
                     return false;
             }

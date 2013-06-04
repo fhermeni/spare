@@ -2,7 +2,9 @@ package btrplace.solver.choco.constraint;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
-import btrplace.model.constraint.MaxOnlines;
+import btrplace.model.Node;
+import btrplace.model.VM;
+import btrplace.model.constraint.MaxOnline;
 import btrplace.model.constraint.SatConstraint;
 import btrplace.solver.SolverException;
 import btrplace.solver.choco.ReconfigurationProblem;
@@ -18,25 +20,24 @@ import choco.kernel.solver.variables.scheduling.TaskVar;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 
 public class CMaxOnlines implements ChocoSatConstraint {
 
-    private final MaxOnlines constraint;
+    private final MaxOnline constraint;
 
     /**
      * Make a new constraint
      *
      * @param maxOn is maxOnlines constraint to rely on
      */
-    public CMaxOnlines(MaxOnlines maxOn) {
+    public CMaxOnlines(MaxOnline maxOn) {
         super();
         constraint = maxOn;
     }
 
     @Override
-    public Set<UUID> getMisPlacedVMs(Model model) {
+    public Set<VM> getMisPlacedVMs(Model model) {
         return model.getMapping().getRunningVMs(constraint.getInvolvedNodes());
     }
 
@@ -54,7 +55,7 @@ public class CMaxOnlines implements ChocoSatConstraint {
             final int NUMBER_OF_TASK = constraint.getInvolvedNodes().size();
             int i = 0;
             int[] nodeIdx = new int[NUMBER_OF_TASK];
-            for (UUID n : constraint.getInvolvedNodes()) {
+            for (Node n : constraint.getInvolvedNodes()) {
                 nodeIdx[i++] = rp.getNode(n);
             }
             IntDomainVar capacity = solver.createIntegerConstant("capacity", constraint.getAmount());
@@ -68,7 +69,7 @@ public class CMaxOnlines implements ChocoSatConstraint {
             TaskVar[] task_vars = new TaskVar[NUMBER_OF_TASK];  // Online duration is modeled as a task
 
             for (int idx = 0; idx < nodeIdx.length; idx++) {
-                UUID n = rp.getNode(nodeIdx[idx]);
+                Node n = rp.getNode(nodeIdx[idx]);
                 NodeActionModel nodeAction = rp.getNodeAction(n);
 
 
@@ -96,7 +97,7 @@ public class CMaxOnlines implements ChocoSatConstraint {
         // Constraint for discrete model
         List<IntDomainVar> nodes_state = new ArrayList<IntDomainVar>(constraint.getInvolvedNodes().size());
 
-        for (UUID ni : constraint.getInvolvedNodes()) {
+        for (Node ni : constraint.getInvolvedNodes()) {
             nodes_state.add(rp.getNodeAction(ni).getState());
         }
 
@@ -115,12 +116,12 @@ public class CMaxOnlines implements ChocoSatConstraint {
 
         @Override
         public ChocoSatConstraint build(SatConstraint cstr) {
-            return new CMaxOnlines((MaxOnlines) cstr);
+            return new CMaxOnlines((MaxOnline) cstr);
         }
 
         @Override
         public Class<? extends SatConstraint> getKey() {
-            return MaxOnlines.class;
+            return MaxOnline.class;
         }
 
     }

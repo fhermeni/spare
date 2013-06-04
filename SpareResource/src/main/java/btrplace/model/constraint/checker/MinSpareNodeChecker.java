@@ -2,11 +2,11 @@ package btrplace.model.constraint.checker;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
+import btrplace.model.Node;
 import btrplace.model.constraint.MinSpareNode;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * User: TU HUYNH DANG
@@ -33,12 +33,12 @@ public class MinSpareNodeChecker extends AllowAllConstraintChecker<MinSpareNode>
 
         Mapping map = mo.getMapping();
 
-        Set<UUID> onnodes = map.getOnlineNodes();
-        Set<UUID> nodes = new HashSet<UUID>(onnodes);
+        Set<Node> onnodes = map.getOnlineNodes();
+        Set<Node> nodes = new HashSet<Node>(onnodes);
         nodes.retainAll(super.getNodes());
-        Set<UUID> idle_nodes = new HashSet<UUID>(nodes);
+        Set<Node> idle_nodes = new HashSet<Node>(nodes);
 
-        for (UUID n : nodes) {
+        for (Node n : nodes) {
             if (!map.getRunningVMs(n).isEmpty()) {
                 idle_nodes.remove(n);
             }

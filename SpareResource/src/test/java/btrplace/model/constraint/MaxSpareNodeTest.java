@@ -1,23 +1,28 @@
 package btrplace.model.constraint;
 
-import btrplace.model.DefaultMapping;
-import btrplace.model.DefaultModel;
-import btrplace.model.Mapping;
-import btrplace.model.Model;
+import btrplace.model.*;
 import btrplace.model.view.ShareableResource;
-import btrplace.test.PremadeElements;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
-public class MaxSpareNodeTest implements PremadeElements {
+public class MaxSpareNodeTest {
     @Test
     public void discreteMaxSpareNodeTest() {
-        Mapping map = new DefaultMapping();
+        Model model = new DefaultModel();
+        Mapping map = model.getMapping();
+        Node n1 = model.newNode();
+        Node n2 = model.newNode();
+        Node n3 = model.newNode();
+        Node n4 = model.newNode();
+        VM vm1 = model.newVM();
+        VM vm2 = model.newVM();
+        VM vm3 = model.newVM();
+        VM vm4 = model.newVM();
+
         map.addOnlineNode(n1);
         map.addOnlineNode(n2);
         map.addOnlineNode(n3);
@@ -28,26 +33,25 @@ public class MaxSpareNodeTest implements PremadeElements {
         map.addRunningVM(vm3, n2);
         map.addRunningVM(vm4, n3);
 
-        Model mo = new DefaultModel(map);
-        ShareableResource rc = new ShareableResource("mem", 1);
+        ShareableResource rc = new ShareableResource("mem", 1, 1);
 
-        rc.set(vm2, 2);
-        rc.set(n1, 4);
-        rc.set(n2, 2);
-        rc.set(n3, 2);
+        rc.setConsumption(vm2, 2);
+        rc.setCapacity(n1, 4);
+        rc.setCapacity(n2, 2);
+        rc.setCapacity(n3, 2);
 
-        mo.attach(rc);
-        Set<UUID> nodes = new HashSet<UUID>(Arrays.asList(n1, n2, n3, n4));
+        model.attach(rc);
+        Set<Node> nodes = new HashSet<Node>(Arrays.asList(n1, n2, n3, n4));
 
         MaxSpareNode msn = new MaxSpareNode(nodes, 1);
 
-        Assert.assertTrue(msn.isSatisfied(mo));
+        Assert.assertTrue(msn.isSatisfied(model));
 
         map.addSleepingVM(vm2, n1);
         map.addSleepingVM(vm3, n1);
-        Assert.assertTrue(msn.isSatisfied(mo));
+        Assert.assertTrue(msn.isSatisfied(model));
 
         map.addSleepingVM(vm4, n3);
-        Assert.assertFalse(msn.isSatisfied(mo));
+        Assert.assertFalse(msn.isSatisfied(model));
     }
 }

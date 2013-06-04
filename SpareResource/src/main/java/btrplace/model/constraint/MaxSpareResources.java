@@ -3,13 +3,14 @@
  */
 package btrplace.model.constraint;
 
+import btrplace.model.Node;
+import btrplace.model.VM;
 import btrplace.model.constraint.checker.MaxSpareResourcesChecker;
 import btrplace.model.constraint.checker.SatConstraintChecker;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * A constraint to force a set of nodes to reserve a maximum number (n) of spare
@@ -45,8 +46,8 @@ public class MaxSpareResources extends SatConstraint {
      * @param n          the number of resources to be reserved
      * @param continuous {@code true} for a continuous restriction.
      */
-    public MaxSpareResources(Collection<UUID> servers, String rc, int n, boolean continuous) {
-        super(Collections.<UUID>emptySet(), servers, continuous);
+    public MaxSpareResources(Collection<Node> servers, String rc, int n, boolean continuous) {
+        super(Collections.<VM>emptySet(), servers, continuous);
         rcId = rc;
         qty = n;
     }
@@ -58,7 +59,7 @@ public class MaxSpareResources extends SatConstraint {
      * @param rc      the resource identifier
      * @param n       the number of resources to be reserved
      */
-    public MaxSpareResources(Set<UUID> servers, String rc, int n) {
+    public MaxSpareResources(Set<Node> servers, String rc, int n) {
         this(servers, rc, n, false);
 
     }

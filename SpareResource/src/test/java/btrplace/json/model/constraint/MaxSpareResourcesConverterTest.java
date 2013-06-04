@@ -1,8 +1,8 @@
 package btrplace.json.model.constraint;
 
 import btrplace.json.JSONConverterException;
+import btrplace.model.Node;
 import btrplace.model.constraint.MaxSpareResources;
-import btrplace.test.PremadeElements;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -11,21 +11,20 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * User: TU HUYNH DANG
  * Date: 5/24/13
  * Time: 9:49 AM
  */
-public class MaxSpareResourcesConverterTest implements PremadeElements {
+public class MaxSpareResourcesConverterTest extends PremadeTest {
 
     @Test
     public void test() {
-        Set<UUID> s = new HashSet<UUID>(Arrays.asList(n1, n2));
+        Set<Node> s = new HashSet<Node>(Arrays.asList(n1, n2));
         MaxSpareResources c = new MaxSpareResources(s, "vcpu", 3);
         MaxSpareResourcesConverter converter = new MaxSpareResourcesConverter();
-
+        converter.setModel(model);
         try {
             File file = new File("MSR.json");
             converter.toJSON(c, file);

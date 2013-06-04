@@ -20,8 +20,8 @@ package btrplace.solver.choco;
 
 import btrplace.model.DefaultMapping;
 import btrplace.model.Mapping;
-
-import java.util.UUID;
+import btrplace.model.Node;
+import btrplace.model.VM;
 
 /**
  * Unsafe but quick tool to create mappings.
@@ -36,8 +36,8 @@ public class MappingBuilder {
         map = new DefaultMapping();
     }
 
-    public MappingBuilder run(UUID n, UUID... vms) {
-        for (UUID vm : vms) {
+    public MappingBuilder run(Node n, VM... vms) {
+        for (VM vm : vms) {
             if (!map.addRunningVM(vm, n)) {
                 System.err.println("Unable to set '" + vm + "' running. Is '" + n + "' online ?");
             }
@@ -45,8 +45,8 @@ public class MappingBuilder {
         return this;
     }
 
-    public MappingBuilder sleep(UUID n, UUID... vms) {
-        for (UUID vm : vms) {
+    public MappingBuilder sleep(Node n, VM... vms) {
+        for (VM vm : vms) {
             if (!map.addSleepingVM(vm, n)) {
                 System.err.println("Unable to set '" + vm + "' running. Is '" + n + "' online ?");
             }
@@ -54,22 +54,22 @@ public class MappingBuilder {
         return this;
     }
 
-    public MappingBuilder ready(UUID... vms) {
-        for (UUID vm : vms) {
+    public MappingBuilder ready(VM... vms) {
+        for (VM vm : vms) {
             map.addReadyVM(vm);
         }
         return this;
     }
 
-    public MappingBuilder on(UUID... nodes) {
-        for (UUID n : nodes) {
+    public MappingBuilder on(Node... nodes) {
+        for (Node n : nodes) {
             map.addOnlineNode(n);
         }
         return this;
     }
 
-    public MappingBuilder off(UUID... nodes) {
-        for (UUID n : nodes) {
+    public MappingBuilder off(Node... nodes) {
+        for (Node n : nodes) {
             if (!map.addOfflineNode(n)) {
                 System.err.println("Unable to set '" + n + "' offline. Is it hosting VMs ?");
             }

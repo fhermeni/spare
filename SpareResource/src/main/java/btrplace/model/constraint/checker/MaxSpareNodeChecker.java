@@ -2,13 +2,13 @@ package btrplace.model.constraint.checker;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
+import btrplace.model.Node;
 import btrplace.model.constraint.MaxSpareNode;
 import btrplace.plan.event.BootNode;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * User: TU HUYNH DANG
@@ -17,7 +17,7 @@ import java.util.UUID;
  */
 public class MaxSpareNodeChecker extends AllowAllConstraintChecker<MaxSpareNode> {
 
-    private Set<UUID> idle_nodes;
+    private Collection<Node> idle_nodes;
 
 
     /**
@@ -28,7 +28,7 @@ public class MaxSpareNodeChecker extends AllowAllConstraintChecker<MaxSpareNode>
 
     public MaxSpareNodeChecker(MaxSpareNode cstr) {
         super(cstr);
-        idle_nodes = new HashSet<UUID>();
+        idle_nodes = new HashSet<Node>();
     }
 
     @Override
@@ -55,10 +55,10 @@ public class MaxSpareNodeChecker extends AllowAllConstraintChecker<MaxSpareNode>
         return true;
     }
 
-    public Set<UUID> getIdleNodes(Model mo, Collection<UUID> nset) {
-        Set<UUID> idleNodes = new HashSet<UUID>();
+    public Set<Node> getIdleNodes(Model mo, Collection<Node> nset) {
+        Set<Node> idleNodes = new HashSet<Node>();
         Mapping map = mo.getMapping();
-        for (UUID n : nset) {
+        for (Node n : nset) {
             if (map.getRunningVMs(n).isEmpty() && map.getOnlineNodes().contains(n)) {
                 idleNodes.add(n);
             }

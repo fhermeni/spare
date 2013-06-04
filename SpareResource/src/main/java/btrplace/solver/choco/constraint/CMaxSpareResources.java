@@ -1,6 +1,8 @@
 package btrplace.solver.choco.constraint;
 
 import btrplace.model.Model;
+import btrplace.model.Node;
+import btrplace.model.VM;
 import btrplace.model.constraint.MaxSpareResources;
 import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
@@ -18,7 +20,6 @@ import choco.kernel.solver.variables.scheduling.TaskVar;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 public class CMaxSpareResources implements ChocoSatConstraint {
 
@@ -35,7 +36,7 @@ public class CMaxSpareResources implements ChocoSatConstraint {
     }
 
     @Override
-    public Set<UUID> getMisPlacedVMs(Model m) {
+    public Set<VM> getMisPlacedVMs(Model m) {
         return m.getMapping().getRunningVMs();
     }
 
@@ -52,7 +53,7 @@ public class CMaxSpareResources implements ChocoSatConstraint {
         CPSolver solver = rp.getSolver();
         // get future state of involved nodes
         List<IntDomainVar> nodes_state = new ArrayList<IntDomainVar>(cstr.getInvolvedNodes().size());
-        for (UUID ni : cstr.getInvolvedNodes()) {
+        for (Node ni : cstr.getInvolvedNodes()) {
             nodes_state.add(rp.getNodeAction(ni).getState());
         }
 
@@ -62,9 +63,9 @@ public class CMaxSpareResources implements ChocoSatConstraint {
         // caps is capacity of all involved nodes
         int[] caps = new int[nodes_state.size()];
         int i = 0;
-        for (UUID u : cstr.getInvolvedNodes()) {
+        for (Node u : cstr.getInvolvedNodes()) {
             vs.add(rcm.getVirtualUsage()[rp.getNode(u)]);
-            caps[i++] = rcm.getSourceResource().get(u);
+            caps[i++] = rcm.getSourceResource().getCapacity(u);
         }
         // sum all capacity of involved nodes
         IntExp capacity_discrete = solver.scalar(caps, nodes_state.toArray(new IntDomainVar[nodes_state.size()]));
@@ -90,7 +91,7 @@ public class CMaxSpareResources implements ChocoSatConstraint {
             IntDomainVar min_consumption = solver.createBoundIntVar("min_consumption", 0, Integer.MAX_VALUE);
             solver.post(solver.eq(min_consumption, solver.minus(capa_cont, cstr.getAmount())));
 
-            for (UUID vmId : rp.getVMs()) {
+            for (VM vmId : rp.getVMs()) {
                 VMActionModel a = rp.getVMAction(vmId);
                 Slice c = a.getCSlice();
                 Slice d = a.getDSlice();

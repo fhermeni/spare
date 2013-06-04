@@ -2,12 +2,13 @@ package btrplace.model.constraint.checker;
 
 import btrplace.model.Mapping;
 import btrplace.model.Model;
+import btrplace.model.Node;
+import btrplace.model.VM;
 import btrplace.model.constraint.MinSpareResources;
 import btrplace.model.view.ShareableResource;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * User: TU HUYNH DANG
@@ -34,8 +35,8 @@ public class MinSpareResourcesChecker extends AllowAllConstraintChecker<MinSpare
 
         int spare = 0;
         Mapping map = mo.getMapping();
-        Set<UUID> onnodes = map.getOnlineNodes();
-        Set<UUID> nodes = new HashSet<UUID>(onnodes);
+        Set<Node> onnodes = map.getOnlineNodes();
+        Set<Node> nodes = new HashSet<Node>(onnodes);
         nodes.retainAll(super.getNodes());
 
         ShareableResource rc = (ShareableResource) mo.getView(ShareableResource.VIEW_ID_BASE +
@@ -45,13 +46,13 @@ public class MinSpareResourcesChecker extends AllowAllConstraintChecker<MinSpare
             return false;
         }
 
-        for (UUID nj : nodes) {
-            spare += rc.get(nj);
+        for (Node nj : nodes) {
+            spare += rc.getCapacity(nj);
         }
 
-        for (UUID nj : nodes) {
-            for (UUID vmId : mo.getMapping().getRunningVMs(nj)) {
-                spare -= rc.get(vmId);
+        for (Node nj : nodes) {
+            for (VM vmId : mo.getMapping().getRunningVMs(nj)) {
+                spare -= rc.getConsumption(vmId);
                 if (spare < super.getConstraint().getAmount())
                     return false;
             }

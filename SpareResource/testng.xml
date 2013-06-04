@@ -1,0 +1,15 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+        <suite name="Suite1" verbose="1">
+    <test name="SpareResource">
+        <groups>
+            <run>
+                <exclude name="brokenTests"  />
+            </run>
+        </groups>
+        <packages>
+            <package name="btrplace.solver.choco.constraint" />
+            <package name="btrplace.model.constraint" />
+            <package name="btrplace.json.model.constraint" />
+        </packages>
+    </test>
+        </suite>

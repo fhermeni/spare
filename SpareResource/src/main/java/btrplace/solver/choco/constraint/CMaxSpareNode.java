@@ -52,9 +52,8 @@ public class CMaxSpareNode implements ChocoSatConstraint {
         if (cstr.isContinuous()) {
             // The constraint must be already satisfied
             if (!cstr.isSatisfied(rp.getSourceModel())) {
-                rp.getLogger()
-                        .error("The constraint '{}' must be already satisfied to provide a continuous restriction",
-                                cstr);
+                System.err.printf("The constraint '{}' must be already satisfied to provide a continuous restriction",
+                        cstr);
                 return false;
             } else {            // Start of Continuous Model
                 IntDomainVar capacity = solver.createIntegerConstant("capacity", cstr.getAmount());

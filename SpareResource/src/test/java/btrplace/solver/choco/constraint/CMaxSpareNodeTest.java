@@ -8,8 +8,6 @@ import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -17,7 +15,6 @@ import java.util.*;
 
 public class CMaxSpareNodeTest {
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Test(timeOut = 10000, groups = {"discrete"})
     public void discreteMaxSpareNodeTest1() throws SolverException {
@@ -54,8 +51,6 @@ public class CMaxSpareNodeTest {
         cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        log.info(plan.toString());
-        log.info(plan.getResult().getMapping().toString());
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
@@ -89,8 +84,6 @@ public class CMaxSpareNodeTest {
         ReconfigurationPlan plan = cra.solve(model, constraints);
 
         Assert.assertNotNull(plan);
-        log.info(plan.toString());
-        log.info(plan.getResult().getMapping().toString());
         Assert.assertTrue(msn.isSatisfied(plan.getResult()));
     }
 
@@ -122,8 +115,6 @@ public class CMaxSpareNodeTest {
         cra.setMaxEnd(20);
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        log.info(plan.toString());
-        log.info(plan.getResult().toString());
         Assert.assertTrue(msn.isSatisfied(plan));
     }
 
@@ -160,8 +151,6 @@ public class CMaxSpareNodeTest {
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        log.info(plan.toString());
-        log.info(plan.getResult().toString());
         Assert.assertTrue(msn.isSatisfied(plan));
     }
 
@@ -204,8 +193,6 @@ public class CMaxSpareNodeTest {
         cra.getSatConstraintMapper().register(new CMaxSpareNode.Builder());
         ReconfigurationPlan plan = cra.solve(model, constraints);
         Assert.assertNotNull(plan);
-        log.info(plan.toString());
-        log.info(plan.getResult().getMapping().toString());
         Assert.assertTrue(msn.isSatisfied(plan));
     }
 }

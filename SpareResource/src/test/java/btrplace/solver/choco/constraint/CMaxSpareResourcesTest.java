@@ -10,17 +10,12 @@ import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
 public class CMaxSpareResourcesTest {
-
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
 
     @Test
     public void testCMaxSpareResourcesDiscrete4() throws SolverException {
@@ -53,7 +48,6 @@ public class CMaxSpareResourcesTest {
         cra.getSatConstraintMapper().register(new CMaxSpareResources.Builder());
         ReconfigurationPlan plan = cra.solve(model, l);
         Assert.assertNotNull(plan);
-        log.info(plan.toString());
         Assert.assertTrue(c.isSatisfied(plan.getResult()));
     }
 
@@ -96,8 +90,5 @@ public class CMaxSpareResourcesTest {
 
         Assert.assertNotNull(plan);
         Assert.assertTrue(c.isSatisfied(plan.getResult()));
-        log.info(plan.getOrigin().getMapping().toString());
-        log.info(plan.toString());
-        log.info(plan.getResult().getMapping().toString());
     }
 }

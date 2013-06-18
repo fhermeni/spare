@@ -12,13 +12,10 @@ import choco.kernel.solver.ContradictionException;
 import choco.kernel.solver.Solver;
 import choco.kernel.solver.variables.integer.IntDomainVar;
 import choco.kernel.solver.variables.scheduling.TaskVar;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class CumulativeTest {
 
-    private static final Logger log = LoggerFactory.getLogger("TEST");
 
     static final int NUMBER_OF_TASK = 5;
     static final int CAPACITY = 3;
@@ -82,9 +79,5 @@ public class CumulativeTest {
 
         ChocoLogging.setVerbosity(Verbosity.SEARCH);
         solver.solve();
-        if (solver.isFeasible()) {
-            log.info(solver.pretty());
-        }
-
     }
 }

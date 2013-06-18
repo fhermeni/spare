@@ -51,77 +51,69 @@ public class CMinSpareNode implements ChocoSatConstraint {
         if (cstr.isContinuous()) {
             // The constraint must be already satisfied
             if (!cstr.isSatisfied(rp.getSourceModel())) {
-                rp.getLogger()
-                        .error("The constraint '{}' must be already satisfied to provide a continuous restriction",
-                                cstr);
+                System.err.printf("The constraint '{}' must be already satisfied to provide a continuous restriction",
+                        cstr);
                 return false;
             } else {
-                // The constraint must be already satisfied
-                if (!cstr.isSatisfied(rp.getSourceModel())) {
-                    rp.getLogger()
-                            .error("The constraint '{}' must be already satisfied to provide a continuous restriction",
-                                    cstr);
-                    return false;
-                } else {            // Start of Continuous Model
-                    IntDomainVar capacity = solver.createIntegerConstant("capacity", cstr.getAmount());
-                    IntDomainVar consumption = solver.createBoundIntVar("consum", cstr.getAmount(), NUMBER_OF_NODE);//minimum consumption of the resource
+                IntDomainVar capacity = solver.createIntegerConstant("capacity", cstr.getAmount());
+                IntDomainVar consumption = solver.createBoundIntVar("consum", cstr.getAmount(), NUMBER_OF_NODE);//minimum consumption of the resource
 //                IntDomainVar uppBound = rp.getEnd(); // All tasks must be scheduled before this time
-                    IntDomainVar[] heights = new IntDomainVar[NUMBER_OF_NODE]; // The state of the node
-                    IntDomainVar[] durations = new IntDomainVar[NUMBER_OF_NODE]; // Online duration
-                    TaskVar[] taskvars = new TaskVar[NUMBER_OF_NODE]; // Online duration is modeled as a task
+                IntDomainVar[] heights = new IntDomainVar[NUMBER_OF_NODE]; // The state of the node
+                IntDomainVar[] durations = new IntDomainVar[NUMBER_OF_NODE]; // Online duration
+                TaskVar[] taskvars = new TaskVar[NUMBER_OF_NODE]; // Online duration is modeled as a task
 
-                    // The start moment of node being idle
-                    IntDomainVar[] idle_starts = new IntDomainVar[NUMBER_OF_NODE];
+                // The start moment of node being idle
+                IntDomainVar[] idle_starts = new IntDomainVar[NUMBER_OF_NODE];
 
-                    // The end moment of node being idle
-                    IntDomainVar[] idle_ends = new IntDomainVar[NUMBER_OF_NODE];
-                    int i = 0;
-                    for (Node n : cstr.getInvolvedNodes()) {
-                        NodeActionModel na = rp.getNodeAction(n);
-                        idle_starts[i] = solver.createBoundIntVar("IS(" + n + ")", 0, MAX_TIME);
-                        idle_ends[i] = solver.createBoundIntVar("IE(" + n + ")", 0, MAX_TIME);
-                        ArrayList<IntDomainVar> CElist = new ArrayList<IntDomainVar>();
-                        CElist.add(0, idle_starts[i]);
-                        Set<VM> vms = rp.getSourceModel().getMapping().getRunningVMs(n);
-                        if (!vms.isEmpty()) {
-                            for (VM vm : vms) {
-                                VMActionModel vma = rp.getVMAction(vm);
-                                Slice c = vma.getCSlice();
-                                CElist.add(c.getEnd());
-                            }
-                            solver.post(new MaxOfAList(solver.getEnvironment(), CElist.toArray(new IntDomainVar[CElist.size()])));
-                        } else {
-                            solver.post(solver.eq(idle_starts[i], na.getHostingStart()));
+                // The end moment of node being idle
+                IntDomainVar[] idle_ends = new IntDomainVar[NUMBER_OF_NODE];
+                int i = 0;
+                for (Node n : cstr.getInvolvedNodes()) {
+                    NodeActionModel na = rp.getNodeAction(n);
+                    idle_starts[i] = solver.createBoundIntVar("IS(" + n + ")", 0, MAX_TIME);
+                    idle_ends[i] = solver.createBoundIntVar("IE(" + n + ")", 0, MAX_TIME);
+                    ArrayList<IntDomainVar> CElist = new ArrayList<IntDomainVar>();
+                    CElist.add(0, idle_starts[i]);
+                    Set<VM> vms = rp.getSourceModel().getMapping().getRunningVMs(n);
+                    if (!vms.isEmpty()) {
+                        for (VM vm : vms) {
+                            VMActionModel vma = rp.getVMAction(vm);
+                            Slice c = vma.getCSlice();
+                            CElist.add(c.getEnd());
                         }
-                        ArrayList<IntDomainVar> dSlist = new ArrayList<IntDomainVar>();
-                        dSlist.add(idle_ends[i]);
-                        for (VMActionModel vma : rp.getVMActions()) {
-                            Slice dSlice = vma.getDSlice();
-                            if (dSlice == null) continue;
-                            IntDomainVar eq = solver.createBooleanVar("eq");
-                            IntDomainVar tmpdEnd = solver.createBoundIntVar("dS" + dSlice.getSubject(), 0, MAX_TIME);
-
-                            postIfOnlyIf(solver, eq, solver.eq(dSlice.getHoster(), rp.getNode(n)));
-                            solver.post(new ElementV(new IntDomainVar[]{na.getHostingEnd(), dSlice.getStart(), eq, tmpdEnd}, 0, solver.getEnvironment()));
-                            dSlist.add(tmpdEnd);
-                        }
-                        solver.post(new MinOfAList(solver.getEnvironment(), dSlist.toArray(new IntDomainVar[dSlist.size()])));
-
-                        durations[i] = rp.makeUnboundedDuration("Dur(" + n + ")");
-                        solver.post(solver.leq(durations[i], rp.getEnd()));
-                        heights[i] = solver.makeConstantIntVar(1); // All tasks have to be scheduled
-                        taskvars[i] = solver.createTaskVar("Task_" + n, idle_starts[i], idle_ends[i], durations[i]);
-                        i++;
+                        solver.post(new MaxOfAList(solver.getEnvironment(), CElist.toArray(new IntDomainVar[CElist.size()])));
+                    } else {
+                        solver.post(solver.eq(idle_starts[i], na.getHostingStart()));
                     }
-                    IntDomainVar r = solver.createBoundIntVar("NBusy", 0, NUMBER_OF_NODE);
-                    solver.post(solver.occurence(durations, r, 0));
-                    int v2 = NUMBER_OF_NODE - cstr.getAmount();
-                    solver.post(solver.leq(r, v2));
-                    solver.post(solver.eq(solver.sum(durations), solver.mult(cstr.getAmount(), rp.getEnd())));
-                    Cumulative cumulative = new Cumulative(solver, "Cumulative", taskvars, heights,
-                            consumption, capacity, rp.getEnd());
-                    solver.post(cumulative);
+                    ArrayList<IntDomainVar> dSlist = new ArrayList<IntDomainVar>();
+                    dSlist.add(idle_ends[i]);
+                    for (VMActionModel vma : rp.getVMActions()) {
+                        Slice dSlice = vma.getDSlice();
+                        if (dSlice == null) continue;
+                        IntDomainVar eq = solver.createBooleanVar("eq");
+                        IntDomainVar tmpdEnd = solver.createBoundIntVar("dS" + dSlice.getSubject(), 0, MAX_TIME);
+
+                        postIfOnlyIf(solver, eq, solver.eq(dSlice.getHoster(), rp.getNode(n)));
+                        solver.post(new ElementV(new IntDomainVar[]{na.getHostingEnd(), dSlice.getStart(), eq, tmpdEnd}, 0, solver.getEnvironment()));
+                        dSlist.add(tmpdEnd);
+                    }
+                    solver.post(new MinOfAList(solver.getEnvironment(), dSlist.toArray(new IntDomainVar[dSlist.size()])));
+
+                    durations[i] = rp.makeUnboundedDuration("Dur(" + n + ")");
+                    solver.post(solver.leq(durations[i], rp.getEnd()));
+                    heights[i] = solver.makeConstantIntVar(1); // All tasks have to be scheduled
+                    taskvars[i] = solver.createTaskVar("Task_" + n, idle_starts[i], idle_ends[i], durations[i]);
+                    i++;
                 }
+                IntDomainVar r = solver.createBoundIntVar("NBusy", 0, NUMBER_OF_NODE);
+                solver.post(solver.occurence(durations, r, 0));
+                int v2 = NUMBER_OF_NODE - cstr.getAmount();
+                solver.post(solver.leq(r, v2));
+                solver.post(solver.eq(solver.sum(durations), solver.mult(cstr.getAmount(), rp.getEnd())));
+                Cumulative cumulative = new Cumulative(solver, "Cumulative", taskvars, heights,
+                        consumption, capacity, rp.getEnd());
+                solver.post(cumulative);
+
             }
         }
         // Extract all the state of the involved nodes (all nodes in this case)

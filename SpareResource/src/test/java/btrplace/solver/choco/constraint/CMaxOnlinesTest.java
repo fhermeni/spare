@@ -2,7 +2,6 @@ package btrplace.solver.choco.constraint;
 
 import btrplace.model.*;
 import btrplace.model.constraint.MaxOnline;
-import btrplace.model.constraint.Offline;
 import btrplace.model.constraint.Online;
 import btrplace.model.constraint.SatConstraint;
 import btrplace.model.view.ShareableResource;
@@ -11,8 +10,6 @@ import btrplace.solver.SolverException;
 import btrplace.solver.choco.ChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.DefaultChocoReconfigurationAlgorithm;
 import btrplace.solver.choco.MappingBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
